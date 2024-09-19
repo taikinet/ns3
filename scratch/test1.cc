@@ -30,7 +30,7 @@ main (int argc, char *argv[])
 {
   uint32_t nPackets = 1;
   CommandLine cmd;
-  cmd.AddValue("nPackets", "Number of packerts to echo", nPackets);
+  cmd.AddValue("nPackeggts", "Number of packerts to echo", nPackets);
   cmd.Parse (argc, argv);
   
   Time::SetResolution (Time::NS);
