@@ -38,17 +38,17 @@ main (int argc, char *argv[])
   LogComponentEnable ("UdpEchoServerApplication", LOG_LEVEL_INFO);
   NS_LOG_INFO("Creating Topology");
 
-  NodeContainer nodes;   //ノード生成
+  NodeContainer nodes;   //ノード生成　p38
   nodes.Create (2);
 
   PointToPointHelper pointToPoint;
-  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
+  pointToPoint.SetDeviceAttribute ("DataRate", StringValue ("5Mbps")); //帯域幅:特定の時間内にネットワーク接続を介して送信できるデータの最大容量
   pointToPoint.SetChannelAttribute ("Delay", StringValue ("2ms"));
 
   NetDeviceContainer devices;
   devices = pointToPoint.Install (nodes);
 
-  InternetStackHelper stack;
+  InternetStackHelper stack;  //インターネット層の装着
   stack.Install (nodes);
 
   Ipv4AddressHelper address;
