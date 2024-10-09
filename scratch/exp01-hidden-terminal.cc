@@ -147,9 +147,9 @@ NetSim::setUdpEchoApp(Ptr <Node> n, Ptr <Node> m, std::string pktSize, std::stri
 }
 
 void
-NetSim::ConfigureDataLinkLayer()
+NetSim::ConfigureDataLinkLayer() //データリンク層の設定
 {
-	// Create propagation loss matrix
+	// 損失行列モデルを使用して
 	Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
 	lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
 	lossModel->SetLoss (n[0]->GetObject<MobilityModel>(), 
@@ -157,24 +157,26 @@ NetSim::ConfigureDataLinkLayer()
 	lossModel->SetLoss (n[2]->GetObject<MobilityModel>(), 
 		n[1]->GetObject<MobilityModel>(), 50); // set symmetric loss 2 <-> 1 to 50 dB
 
-	// Create & setup wifi channel
+	// 無線チャネルの設定　損失モデルと遅延モデルの装着
 	Ptr<YansWifiChannel> wifiChannel = CreateObject <YansWifiChannel> ();
 	wifiChannel->SetPropagationLossModel (lossModel);
-	wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ());
+	wifiChannel->SetPropagationDelayModel (CreateObject <ConstantSpeedPropagationDelayModel> ()); //定定速度伝搬モデル
 
+	//wifiチャネルを装着
 	YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
 	wifiPhy.SetChannel (wifiChannel);
-
+	
+	// Macレイヤーの設定を行い、アドホックモードを指定
 	Ssid ssid = Ssid ("MySSID");
 	NqosWifiMacHelper wifiMac = NqosWifiMacHelper::Default ();
-	wifiMac.SetType ("ns3::AdhocWifiMac", "Ssid", SsidValue (ssid));
+	wifiMac.SetType ("ns3::AdhocWifiMac", "Ssid", SsidValue (ssid)); //adhoc指定
 
-	// Install wireless devices
+	//  devicesにワイヤレス通信をインストール
 	WifiHelper wifi;
 	wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
 	wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager", 
-				      "DataMode"   ,StringValue ("DsssRate2Mbps"), 
-				      "ControlMode",StringValue ("DsssRate1Mbps"));
+				      "DataMode"   ,StringValue ("DsssRate2Mbps"), // データ速度2Mbps
+				      "ControlMode",StringValue ("DsssRate1Mbps")); // 制御通信速度1Mbps 
 	devices = wifi.Install (wifiPhy, wifiMac, allNodes);
 }
 

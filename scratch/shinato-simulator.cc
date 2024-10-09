@@ -35,14 +35,14 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("shinato-simulator");//環境変数。外部から参照できる
 
-class WifiPhyStats : public Object//wifi設定で使用するクラス
+class WifiPhyStats : public Object//wifi設定で使用するクラス　　
 {
 public:
   static TypeId GetTypeId (void);
   WifiPhyStats ();
-  virtual ~WifiPhyStats ();
-  void PhyTxTrace (std::string context, Ptr<const Packet> packet, WifiMode mode, WifiPreamble preamble, uint8_t txPower);
-  uint64_t GetPhyTxBytes ();
+  virtual ~WifiPhyStats (); 
+  void PhyTxTrace (std::string context, Ptr<const Packet> packet, WifiMode mode, WifiPreamble preamble, uint8_t txPower); 
+  uint64_t GetPhyTxBytes (); 
 private:
   uint64_t m_phyTxBytes;
 };
@@ -132,7 +132,6 @@ RoutingHelper::RoutingHelper ()
     //送受信ノード選択
     m_sourceNode=0;
     m_sinkNode1=1;
-    m_sinkNode2=2;
 
 }
 
