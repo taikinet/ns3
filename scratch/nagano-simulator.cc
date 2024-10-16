@@ -74,12 +74,12 @@ WifiPhyStats::GetPhyTxBytes () // 外部参照の際のメソッド
   return m_phyTxBytes;
 }
 
-class RoutingHelper : public Object
+class RoutingHelper : public Object // 宣言。　Objectを継承
 {
 public:
   static TypeId GetTypeId (void);
-  RoutingHelper ();
-  virtual ~RoutingHelper ();
+  RoutingHelper (); //コンストラクタ
+  virtual ~RoutingHelper (); // デストラクタ
   void Install (NodeContainer & c,
                 NetDeviceContainer & d,
                 Ipv4InterfaceContainer & ic,
@@ -89,10 +89,10 @@ public:
   
   std::string ConvertToHex(const unsigned char* data, size_t length);
 private:
-  void ConfigureRoutingProtocol (NodeContainer &c);
-  void ConfigureIPAddress (NetDeviceContainer &d, Ipv4InterfaceContainer& ic);
+  void ConfigureRoutingProtocol (NodeContainer &c); // コンテナに対してルーティングプロトコルを設定
+  void ConfigureIPAddress (NetDeviceContainer &d, Ipv4InterfaceContainer& ic); // 
   void ConfigureRoutingMessages (NodeContainer & c,Ipv4InterfaceContainer & ic);
-  Ptr<Socket> ConfigureRoutingPacketReceive (Ipv4Address addr, Ptr<Node> node);
+  Ptr<Socket> ConfigureRoutingPacketReceive (Ipv4Address addr, Ptr<Node> node); // ルーティングパケットを受信するためのソケットを設定
 
   double m_totalSimTime;
   std::string m_protocolName;
@@ -103,19 +103,19 @@ private:
 
 };
 
-NS_OBJECT_ENSURE_REGISTERED (RoutingHelper);
+NS_OBJECT_ENSURE_REGISTERED (RoutingHelper); // マクロ
 
-TypeId
+TypeId // ns-3のオブジェクトシステムでクラスを識別するための関数
 RoutingHelper::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::RoutingHelper")
-    .SetParent<Object> ()
-    .AddConstructor<RoutingHelper> ();
+  static TypeId tid = TypeId ("ns3::RoutingHelper") // RoutingHelper型として識別
+    .SetParent<Object> () // RoutingHelper型はObjectクラスを継承
+    .AddConstructor<RoutingHelper> (); // コンストラクタをObjectシステムに追加
   return tid;
 }
 
 std::string 
-RoutingHelper::ConvertToHex(const unsigned char* data, size_t length){
+RoutingHelper::ConvertToHex(const unsigned char* data, size_t length){ //バイナリデータを16進数に変換し、文字列として返すユーティリティ関数です。デバッグやログ用にデータを視覚的に確認したい場合に使われる
         std::stringstream ss;
         ss << std::hex << std::setfill('0');
         for (size_t i = 0; i < length; ++i) {
@@ -124,8 +124,8 @@ RoutingHelper::ConvertToHex(const unsigned char* data, size_t length){
         return ss.str();
 }
 
-RoutingHelper::RoutingHelper ()
-  : m_totalSimTime (30),//シュミレーション時間
+RoutingHelper::RoutingHelper () // コンストラクタ
+  : m_totalSimTime (100),//シュミレーション時間
     m_port (9)
 {
     //送受信ノード選択
@@ -134,7 +134,7 @@ RoutingHelper::RoutingHelper ()
 
 }
 
-RoutingHelper::~RoutingHelper ()
+RoutingHelper::~RoutingHelper () // デストラクタ
 {
 }
 
@@ -148,7 +148,7 @@ RoutingHelper::Install (NodeContainer & c,
 {
   m_traceFile = traceFile;
   m_totalSimTime = totalTime;
-  m_protocolName=protocolName;
+  m_protocolName = protocolName;
   ConfigureRoutingProtocol (c);
   ConfigureIPAddress (d,ic);
   ConfigureRoutingMessages (c, ic);
@@ -317,31 +317,33 @@ RoutingHelper::ConfigureIPAddress (NetDeviceContainer& d, Ipv4InterfaceContainer
 	}
 
 
-void
+void // 指定されたノードに対して送信と受信の通信設定を行う
 RoutingHelper::ConfigureRoutingMessages (NodeContainer & c,//通信設定
                                      Ipv4InterfaceContainer & ic)
 {
   uint32_t src,dst;
 
-  int seed=time(NULL);
+  int seed=time(NULL); // 通信の開始時間などに乱数を用いてランダムな動作を再現するため、シードを設定
   srand(seed);
   
   // Setup routing transmissions
-  OnOffHelper onoff1 ("ns3::UdpSocketFactory",Address ());
-  onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));
-  onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
+  // 送信を継続的に行う
+  OnOffHelper onoff1 ("ns3::UdpSocketFactory",Address ()); // ノードの間でパケットを送信するアプリケーションを作成するためのクラス。UDP通信
+  onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]")); // パケットの送信時間
+  onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]")); // 停止時間
 
   //送受信ノード設定
   src=m_sourceNode;
   dst=m_sinkNode;
-  Ptr<Socket> sink = ConfigureRoutingPacketReceive (ic.GetAddress (dst), c.Get (dst));
+  // Ptr<Socket>はスマートポインタといい、メモリ関係のお仕事をしてくれる
+  Ptr<Socket> sink = ConfigureRoutingPacketReceive (ic.GetAddress (dst), c.Get (dst)); // パケットを受け取る準備の設定
   AddressValue remoteAddress (InetSocketAddress (ic.GetAddress (dst), m_port));
-  onoff1.SetAttribute ("Remote", remoteAddress);
-  ApplicationContainer temp = onoff1.Install (c.Get (src));
+  onoff1.SetAttribute ("Remote", remoteAddress); // 送信先ノードのIPアドレスとポートを設定
+  ApplicationContainer temp = onoff1.Install (c.Get (src)); // 送信ノードにアプリケーションをインストール
 
   double startTime =double(rand()%11)/10.0+1.0;
-  temp.Start (Seconds (startTime));
-  temp.Stop (Seconds (m_totalSimTime));
+  temp.Start (Seconds (startTime)); // 通信アプリケーションの開始
+  temp.Stop (Seconds (m_totalSimTime)); // 終了
 
 }
 
@@ -349,9 +351,9 @@ Ptr<Socket>//宛先ノード設定
 RoutingHelper::ConfigureRoutingPacketReceive (Ipv4Address addr, Ptr<Node> node)
 {
   TypeId tid = TypeId::LookupByName ("ns3::UdpSocketFactory");
-  Ptr<Socket> sink = Socket::CreateSocket (node, tid);
-  InetSocketAddress local = InetSocketAddress (addr, m_port);
-  sink->Bind (local);
+  Ptr<Socket> sink = Socket::CreateSocket (node, tid); // nodeにUDPのソケットを作成
+  InetSocketAddress local = InetSocketAddress (addr, m_port); // nodeのローカルアドレスとポートを取得
+  sink->Bind (local); // バインド
   return sink;
 }
 
@@ -417,7 +419,7 @@ private:
 
 VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパラメータの初期化
 : m_port (9),//ポート番号
-m_nNodes (40),//ノード数
+m_nNodes (60),//ノード数
 m_protocolName ("PGPSR"),//プロトコル名
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
