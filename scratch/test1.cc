@@ -52,9 +52,9 @@ main (int argc, char *argv[])
   stack.Install (nodes);
 
   Ipv4AddressHelper address;
-  address.SetBase ("10.1.1.0", "255.255.255.0");
+  address.SetBase ("10.1.1.0", "255.255.255.0"); //アドレスの設定（ネットワークアドレス、サブネットマスク、割り当てるアドレスのスタート）
 
-  Ipv4InterfaceContainer interfaces = address.Assign (devices);
+  Ipv4InterfaceContainer interfaces = address.Assign (devices); // デバイスにアドレスを割り当てる
 
   UdpEchoServerHelper echoServer (9);  //SERVER_PORT9
 
