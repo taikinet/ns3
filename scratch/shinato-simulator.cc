@@ -100,7 +100,6 @@ private:
   uint32_t m_port;
   uint32_t m_sourceNode;
   uint32_t m_sinkNode1;            
-  uint32_t m_sinkNode2;  
 
 };
 
@@ -381,7 +380,6 @@ private:
     uint32_t m_nNodes;//ノード数
     uint32_t m_sourceNode;//送信ノード
     uint32_t m_sinkNode1;//受信ノード1
-    uint32_t m_sinkNode2;//受信ノード2
     std::string m_protocolName;//プロトコル名
 
     double m_txp;//送信電力(dB)

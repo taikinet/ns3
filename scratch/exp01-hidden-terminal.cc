@@ -147,9 +147,11 @@ NetSim::setUdpEchoApp(Ptr <Node> n, Ptr <Node> m, std::string pktSize, std::stri
 }
 
 void
-NetSim::ConfigureDataLinkLayer() //データリンク層の設定
+NetSim::ConfigureDataLinkLayer()
 {
-	// 損失行列モデルを使用して
+	// Create propagation loss matrix
+	// node[0]とnode[1] node[1]とnode[2]の間の距離を50mとして、それ以外は200mとする
+	//node0とnode2は直接通信できない「見えない」
 	Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel> ();
 	lossModel->SetDefaultLoss (200); // set default loss to 200 dB (no link)
 	lossModel->SetLoss (n[0]->GetObject<MobilityModel>(), 
