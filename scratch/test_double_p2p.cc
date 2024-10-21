@@ -50,7 +50,7 @@ main (int argc, char *argv[])
   serverApps.Start (Seconds (1.0));
   serverApps.Stop (Seconds (10.0));
   UdpEchoServerHelper echoServer2 (10);//PORT番号を指定
-  ApplicationContainer serverApps2 = echoServer2.Install (nodes.Get (3)); //node1にPORT9で動作するUDPechoサーバを作成
+  ApplicationContainer serverApps2 = echoServer2.Install (nodes.Get (3)); //node1にPORT10で動作するUDPechoサーバを作成
   serverApps2.Start (Seconds (1.0));
   serverApps2.Stop (Seconds (10.0));
 

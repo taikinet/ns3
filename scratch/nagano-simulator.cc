@@ -33,7 +33,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("shinato-simulator");//環境変数。外部から参照できる
+NS_LOG_COMPONENT_DEFINE ("nagano-simulator");//環境変数。外部から参照できる
 
 class WifiPhyStats : public Object//wifi設定で使用するクラス　　Objectクラスを継承
 {
@@ -419,7 +419,7 @@ private:
 
 VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパラメータの初期化
 : m_port (9),//ポート番号
-m_nNodes (60),//ノード数
+m_nNodes (40),//ノード数
 m_protocolName ("PGPSR"),//プロトコル名
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
