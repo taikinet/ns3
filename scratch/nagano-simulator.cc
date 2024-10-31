@@ -196,7 +196,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
   else if(m_protocolName=="PGPSR"){
     //ECDSA
     //鍵生成（IP)
-    EC_KEY* ecKey_ip = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成
+    EC_KEY* ecKey_ip = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成　IPアドレスに関するECキー
     if (ecKey_ip == nullptr)
     {
       std::cerr << "Failed to create EC key" << std::endl;
@@ -206,12 +206,12 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
     //鍵生成（位置)
-    EC_KEY* ecKey_pos = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成
+    EC_KEY* ecKey_pos = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成 位置情報に関するECキー
     if (ecKey_pos == nullptr)
     {
       std::cerr << "Failed to create EC key" << std::endl;
     }
-    if (EC_KEY_generate_key(ecKey_pos) != 1)//公開鍵、秘密鍵ペア生成
+    if (EC_KEY_generate_key(ecKey_pos) != 1)//公開鍵、秘密鍵ペア生成　
     {
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
@@ -472,7 +472,7 @@ VanetRoutingExperiment::ParseCommandLineArguments (int argc, char **argv)
 
     CommandLine cmd;//コマンドライン引数を解析する
 
-    //AddValue(プログラム提供の引数の名前,--PrintHelpで使用されるヘルプテキスト,値が格納される変数への参照)
+    //AddValue(プログラム提供の引数の名前(コマンドライン上で使用する),--PrintHelpで使用されるヘルプテキスト,値が格納される変数への参照)
     // コマンドライン引数で以下の変数を上書きする
     cmd.AddValue ("protocolName", "name of protocol", m_protocolName);
     cmd.AddValue ("simTime", "total simulation time", m_totalSimTime);
@@ -485,9 +485,9 @@ VanetRoutingExperiment::ParseCommandLineArguments (int argc, char **argv)
 void
 VanetRoutingExperiment::ConfigureDefaults ()//デフォルトの属性を設定する
 {
-    Config::SetDefault ("ns3::OnOffApplication::PacketSize",StringValue (m_packetSize));
-    Config::SetDefault ("ns3::OnOffApplication::DataRate",  StringValue (m_rate));
-    Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue (m_phyMode));
+    Config::SetDefault ("ns3::OnOffApplication::PacketSize",StringValue (m_packetSize)); // コンストラクタで初期化された値を設定する
+    Config::SetDefault ("ns3::OnOffApplication::DataRate",  StringValue (m_rate)); // データレートを設定する
+    Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue (m_phyMode)); // OFDM
 }
 
 void
@@ -502,8 +502,8 @@ void
 VanetRoutingExperiment:://トレースファイルを読みだすのに必要
 CourseChange (std::ostream *os, std::string foo, Ptr<const MobilityModel> mobility)
 {
-    Vector pos = mobility->GetPosition (); // Get position
-    Vector vel = mobility->GetVelocity (); // Get velocity
+    Vector pos = mobility->GetPosition (); // ノードの位置を取得
+    Vector vel = mobility->GetVelocity (); // ノードの速度を取得
     pos.z = 1.5;
     int nodeId = mobility->GetObject<Node> ()->GetId ();
     double t = (Simulator::Now ()).GetSeconds ();
@@ -521,8 +521,8 @@ void
   VanetRoutingExperiment::ConfigureMobility ()
   {//モビリティを設定する
       Ns2MobilityHelper ns2 = Ns2MobilityHelper (m_traceFile);      
-      ns2.Install (m_adhocTxNodes.Begin (),m_adhocTxNodes.End());
-      WaveBsmHelper::GetNodesMoving ().resize (48, 0);
+      ns2.Install (m_adhocTxNodes.Begin (),m_adhocTxNodes.End()); // コンテナ内の全てのノードにモビリティをインストール
+      WaveBsmHelper::GetNodesMoving ().resize (48, 0); // 各ノードが移動しているかどうかを記録するためのもの
 }
 
 void
@@ -532,7 +532,7 @@ VanetRoutingExperiment::ConfigureDevices ()//チャネルを構成する
     YansWifiChannelHelper wifiChannel;
     wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
     //このチャネルの電波伝搬遅延モデルを設定する(電波伝搬速度は一定の速度2.99792e+08 )
-    wifiChannel.AddPropagationLoss (m_lossModelName,
+    wifiChannel.AddPropagationLoss (m_lossModelName, // 伝搬損失モデルを設定する
       "Exponent", DoubleValue (2.5) ,
       "ReferenceDistance" , DoubleValue(1.0) ,
       "ReferenceLoss"    ,DoubleValue(37.35));
@@ -541,7 +541,7 @@ VanetRoutingExperiment::ConfigureDevices ()//チャネルを構成する
 
     YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();//デフォルトの動作状態でphyヘルパーを作成する
     wifiPhy.SetChannel (channel);//このヘルパーにチャネルを関連付ける
-    wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11);
+    wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11); // シミュレーション中に通信トラフィックをキャプチャする機能
     //pcapトレースのデータリンクタイプをieee802.11無線LANヘッダーで設定する
 
     // Setup WAVE PHY and MAC
@@ -556,7 +556,7 @@ VanetRoutingExperiment::ConfigureDevices ()//チャネルを構成する
     // Set Tx Power
     wifiPhy.Set ("TxPowerStart",DoubleValue (m_txp));//最小送信レベルを20dbmとする
     wifiPhy.Set ("TxPowerEnd", DoubleValue (m_txp));//最大送信レベルを20dbmとする
-    wifiPhy.Set ("EnergyDetectionThreshold", DoubleValue (m_EDT));
+    wifiPhy.Set ("EnergyDetectionThreshold", DoubleValue (m_EDT)); // エネルギーがこの値以上の場合に通信を行う
 
     // Add an upper mac and disable rate control
     WifiMacHelper wifiMac;
@@ -574,7 +574,7 @@ VanetRoutingExperiment::ConfigureApplications ()//アプリケーションを設
     m_routingHelper->Install(m_adhocTxNodes,m_adhocTxDevices,m_adhocTxInterfaces,m_totalSimTime,m_protocolName,m_traceFile);
 }
 
-size_t
+size_t // メモリ使用量を取得する
 VanetRoutingExperiment::getMemoryUsage() {
     std::ifstream file("/proc/self/status");
     std::string line;
@@ -595,7 +595,7 @@ VanetRoutingExperiment::RunSimulation ()//シミュレーションを実行す�
 {
     NS_LOG_INFO ("Run Simulation.");//メッセージ"Run Simulation"をログに記録する
 
-    auto start_time = std::chrono::high_resolution_clock::now();
+    auto start_time = std::chrono::high_resolution_clock::now(); // シミュレーション開始時刻を記録
 
     m_flowMonitorHelper = new FlowMonitorHelper;
     m_flowMonitor = m_flowMonitorHelper->InstallAll();
@@ -604,8 +604,8 @@ VanetRoutingExperiment::RunSimulation ()//シミュレーションを実行す�
     Simulator::Run ();//シミュレーションを実行する
     RunFlowMonitor();
 
-    auto end_time = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> duration = end_time - start_time;
+    auto end_time = std::chrono::high_resolution_clock::now(); // シミュレーション終了時刻を記録
+    std::chrono::duration<double> duration = end_time - start_time; 
     m_simlationTime = duration.count();
     memory_usage_kb = getMemoryUsage();
 
@@ -659,7 +659,7 @@ VanetRoutingExperiment::RunFlowMonitor()
     }
 
     m_throughput = sumThroughput;
-    m_pdr = (double(sumRxBytes)/sumTxBytes)*100.0;
+    m_pdr = (double(sumRxBytes)/sumTxBytes)*100.0; // 配送率
     m_overHead = ((double(m_wifiPhyStats->GetPhyTxBytes()-sumTxBytes))/m_wifiPhyStats->GetPhyTxBytes())*100;
     if(m_overHead<0.0)
       m_overHead=0.0;
@@ -697,7 +697,7 @@ VanetRoutingExperiment::RunFlowMonitor()
 
 void
 VanetRoutingExperiment::ProcessOutputs ()
-{//出力を処理する
+{//出力を処理する. ファイルへの書き込み
     std::ofstream out (m_fileName.c_str(),std::ios::out|std::ios::app);
     out<<m_throughput<<std::endl;
     out<<m_pdr<<std::endl;
