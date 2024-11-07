@@ -1,0 +1,31 @@
+# -*- Mode: python; py-indent-offset: 4; indent-tabs-mode: nil; coding: utf-8; -*-
+
+# def options(opt):
+#     pass
+
+# def configure(conf):
+#     conf.check_nonfatal(header_name='stdint.h', define_name='HAVE_STDINT_H')
+
+def build(bld):
+    module = bld.create_ns3_module('dgpsr', ['location-service', 'internet', 'wifi', 'applications', 'mesh', 'point-to-point', 'virtual-net-device'])
+    module.source = [
+        'model/dgpsr-ptable.cc',
+        'model/dgpsr-rqueue.cc',
+        'model/dgpsr-packet.cc',
+        'model/dgpsr.cc',
+        'helper/dgpsr-helper.cc',
+        ]
+
+    headers = bld(features=['ns3header'])
+    headers.module = 'dgpsr'
+    headers.source = [
+        'model/dgpsr-ptable.h',
+        'model/dgpsr-rqueue.h',
+        'model/dgpsr-packet.h',
+        'model/dgpsr.h',
+        'helper/dgpsr-helper.h',
+        ]
+
+    
+    # bld.ns3_python_bindings()
+

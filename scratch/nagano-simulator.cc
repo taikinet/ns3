@@ -16,6 +16,7 @@
 #include "ns3/gpsr-module.h"
 #include "ns3/igpsr-module.h"
 #include "ns3/pgpsr-module.h"
+#include "ns3/dgpsr-module.h"
 #include "ns3/lgpsr-module.h"
 #include "ns3/ngpsr-module.h"
 #include "ns3/flow-monitor.h"
@@ -164,6 +165,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
   LGpsrHelper lgpsr;
   PGpsrHelper pgpsr;
   NGpsrHelper ngpsr;
+  DGpsrHelper dgpsr;
 
   Ipv4ListRoutingHelper list;
   InternetStackHelper internet;
@@ -301,6 +303,57 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     list.Add (ngpsr, 100);//dsdvルーティングヘルパーとその優先度(100)を格納する
     internet.SetRoutingHelper (list);//インストール時に使用するルーティングヘルパーを設定する
     internet.Install(c);//各ノードに(Ipv4,Ipv6,Udp,Tcp)クラスの実装を集約する
+  }
+  else if(m_protocolName=="DGPSR"){
+    //EdDSA
+    //鍵生成（IP)
+    EVP_PKEY* edKey_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL);//Edキー生成　IPアドレスに関するEdキー
+    if (edKey_ip == nullptr || EVP_PKEY_keygen_init(edKey_ip) != 1)
+    {
+      std::cerr << "Failed to create Ed key" << std::endl;
+    }
+    if (EVP_PKEY_keygen(edKey_ip, NULL) != 1)//公開鍵、秘密鍵ペア生成
+    {
+      std::cerr << "Failed to generate Ed key pair" << std::endl;
+    }
+    //鍵生成（位置)
+    EVP_PKEY* edKey_pos = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL);//ECキー生成 位置情報に関するECキー
+    if (edKey_pos == nullptr || EVP_PKEY_keygen_init(edKey_pos) != 1)
+    {
+      std::cerr << "Failed to create Ed key" << std::endl;
+    }
+    if (EVP_PKEY_keygen(edKey_pos, NULL) != 1)//公開鍵、秘密鍵ペア生成　
+    {
+      std::cerr << "Failed to generate EC key pair" << std::endl;
+    }
+
+    dgpsr.SetDsaParameterIP(edKey_ip);//IPアドレス署名用のパラメーター
+    dgpsr.SetDsaParameterPOS(edKey_pos);
+    dgpsr.Settracefile(m_traceFile);
+
+    //署名生成（IP)
+    unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+    SHA256(reinterpret_cast<const unsigned char*>(m_protocolName.c_str()), m_protocolName.length(), digest);
+    ECDSA_SIG* signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, ecKey_ip);//署名生成
+    if (signature == nullptr)
+    {
+      std::cerr << "Failed to generate ECDSA signature" << std::endl;
+    }
+    pgpsr.SetDsaSignatureIP(signature);
+    //署名生成（位置)
+    unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+    SHA256(reinterpret_cast<const unsigned char*>(m_traceFile.c_str()), m_traceFile.length(), digest1);
+    ECDSA_SIG* possignature = ECDSA_do_sign(digest1, SHA256_DIGEST_LENGTH, ecKey_pos);//署名生成
+    if (possignature == nullptr)
+    {
+      std::cerr << "Failed to generate ECDSA signature" << std::endl;
+    }
+    pgpsr.SetDsaSignaturePOS(possignature);
+
+    list.Add (pgpsr, 100);
+    internet.SetRoutingHelper (list);
+    internet.Install(c);
+
   }
   else{
     NS_FATAL_ERROR ("No such protocol:" << m_protocolName);//致命的なエラーをメッセージNo such protocolで報告する
