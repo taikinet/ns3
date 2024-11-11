@@ -86,7 +86,7 @@ public:
                 Ipv4InterfaceContainer & ic,
                 double totalTime,
                 std::string protocolName,
-                std::string trsceFile);
+                std::string traceFile);
   
   std::string ConvertToHex(const unsigned char* data, size_t length);
 private:
@@ -307,25 +307,28 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
   else if(m_protocolName=="DGPSR"){
     //EdDSA
     //鍵生成（IP)
-    EVP_PKEY* edKey_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL);//Edキー生成　IPアドレスに関するEdキー
-    if (edKey_ip == nullptr || EVP_PKEY_keygen_init(edKey_ip) != 1)
-    {
-      std::cerr << "Failed to create Ed key" << std::endl;
+    EVP_PKEY_CTX* edCtx_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL); // 鍵を生成するためのコンテキスト
+    EVP_PKEY* edKey_ip = NULL //Edキー生成　IPアドレスに関するEdキー
+    if (edCtx_ip == nullptr || EVP_PKEY_keygen_init(edCtx_ip) != 1) {
+      std::cerr << "Failed to create Ed key context for IP" << std::endl;
     }
-    if (EVP_PKEY_keygen(edKey_ip, NULL) != 1)//公開鍵、秘密鍵ペア生成
+    if (EVP_PKEY_keygen(edCtx_ip, &edKey_ip) != 1)　//公開鍵、秘密鍵ペア生成
     {
       std::cerr << "Failed to generate Ed key pair" << std::endl;
     }
+    EVP_PKEY_CTX_free(edCtx_ip); // メモリの解放
+
     //鍵生成（位置)
-    EVP_PKEY* edKey_pos = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL);//ECキー生成 位置情報に関するECキー
-    if (edKey_pos == nullptr || EVP_PKEY_keygen_init(edKey_pos) != 1)
-    {
-      std::cerr << "Failed to create Ed key" << std::endl;
+    EVP_PKEY_CTX* edCtx_pos = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL);
+    EVP_PKEY* edKey_pos = NULL; //ECキー生成 位置情報に関するECキー
+    if (edCtx_pos == nullptr || EVP_PKEY_keygen_init(edCtx_pos) != 1) {
+      std::cerr << "Failed to create Ed key context for Position" << std::endl;
     }
     if (EVP_PKEY_keygen(edKey_pos, NULL) != 1)//公開鍵、秘密鍵ペア生成　
     {
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
+    EVP_PKEY_CTX_free(edCtx_pos);
 
     dgpsr.SetDsaParameterIP(edKey_ip);//IPアドレス署名用のパラメーター
     dgpsr.SetDsaParameterPOS(edKey_pos);
