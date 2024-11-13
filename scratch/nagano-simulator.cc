@@ -363,7 +363,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
 
     // 署名の初期化 (鍵の設定)
     
-    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, ed_key_ip) <= 0) {
+    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, edKey_ip) <= 0) {
       std::cerr << "Failed to initialize DigestSign" << std::endl;
       EVP_MD_CTX_free(md_ctx);
       return;
@@ -402,7 +402,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     }
 
     // 署名の初期化 (鍵の設定)
-    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, ed_key_pos) <= 0) {
+    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, edKey_pos) <= 0) {
       std::cerr << "Failed to initialize DigestSign" << std::endl;
       EVP_MD_CTX_free(md_ctx);
       return;

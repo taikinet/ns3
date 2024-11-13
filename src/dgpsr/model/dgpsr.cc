@@ -25,7 +25,6 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
-#include <openssl/ed25519.h>
 
 
 #define DGPSR_LS_GOD 0
@@ -722,11 +721,28 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), digest1);
 
+        auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* signature, size_t sig_len) -> bool {
+        EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
+        if (!md_ctx) {
+                std::cerr << "Failed to create EVP_MD_CTX" << std::endl;
+                return false;
+        }
+
+        bool result = false;
+        if (EVP_DigestVerifyInit(md_ctx, nullptr, nullptr, nullptr, key) == 1) {
+                if (EVP_DigestVerify(md_ctx, signature, sig_len, message, message_len) == 1) {
+                result = true;
+                }
+        }
+        EVP_MD_CTX_free(md_ctx);
+        return result;
+        };
+
         //署名検証
-        if (Ed25519_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), edKey_ip) == 1)//署名検証　成功時１
+        if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
-                //std::cerr << "EdDSA signature verification succeeded" << std::endl;
-                if (Ed25519_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), edKey_ip) == 1)
+                std::cerr << "EdDSA signature verification succeeded" << std::endl;
+                if (verify_signature(edKeypos, reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), hdr.GetSignaturePOS(), 64))
                 {
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
