@@ -25,6 +25,8 @@
 #include "ns3/node-container.h"
 #include "ns3/ipv4-routing-helper.h"
 #include <openssl/ec.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 
 
 
@@ -66,15 +68,15 @@ public:
 
   //shinato
   //IP
-  void SetDsaParameterIP(EC_KEY* parameter);
-  EC_KEY* GetDsaParameterIP() const;
-  void SetDsaSignatureIP(ECDSA_SIG* signature);
-  ECDSA_SIG* GetDsaSignatureIP() const;
+  void SetDsaParameterIP(EVP_PKEY* parameter);
+  EVP_PKEY* GetDsaParameterIP() const;
+  void SetDsaSignatureIP(unsigned char* signature);
+  unsigned char* GetDsaSignatureIP() const;
   //位置
-  void SetDsaParameterPOS(EC_KEY* posparamater);
-  EC_KEY* GetDsaParameterPOS() const;
-  void SetDsaSignaturePOS(ECDSA_SIG* possignature);
-  ECDSA_SIG* GetDsaSignaturePOS() const;
+  void SetDsaParameterPOS(EVP_PKEY* posparamater);
+  EVP_PKEY* GetDsaParameterPOS() const;
+  void SetDsaSignaturePOS(unsigned char* possignature);
+  unsigned char* GetDsaSignaturePOS() const;
 
   void Settracefile(std::string tracefile);
   std::string Gettracefile() const;
@@ -83,10 +85,10 @@ public:
 
 private:
   ObjectFactory m_agentFactory;
-  EC_KEY* m_dsaParameter;
-  ECDSA_SIG* m_dsaSignatureIP;
-  EC_KEY* m_dsaposParameter;
-  ECDSA_SIG* m_dsaposSignatureIP;
+  EVP_PKEY* m_dsaParameter;
+  unsigned char* m_dsaSignatureIP;
+  EVP_PKEY* m_dsaposParameter;
+  unsigned char* m_dsaposSignatureIP;
   std::string m_tracefile;
 };
 

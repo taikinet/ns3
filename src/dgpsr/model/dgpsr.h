@@ -31,6 +31,8 @@
 #include <openssl/ec.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 
 namespace ns3 {
 namespace dgpsr {
@@ -41,10 +43,10 @@ namespace dgpsr {
  */
 class RoutingProtocol : public Ipv4RoutingProtocol
 {
-  EC_KEY* ec_key;
-  ECDSA_SIG* m_dsaSignatureIP;
-  EC_KEY* ec_keypos;
-  ECDSA_SIG* m_dsaSignaturePOS;
+  EVP_PKEY* ed_key;
+  unsigned char* m_dsaSignatureIP;
+  EVP_PKEY* ed_keypos;
+  unsigned char* m_dsaSignaturePOS;
   std::string m_tracefile;
 public:
   static TypeId GetTypeId (void);
@@ -75,35 +77,35 @@ public:
   virtual void SendHello ();
   virtual bool IsMyOwnAddress (Ipv4Address src);
 
-  void SetDsaParameterIP(EC_KEY* parameter)
+  void SetDsaParameterIP(EVP_PKEY* parameter)
   {
-    ec_key = parameter;
+    ed_key = parameter;
   }
-  EC_KEY* GetDsaParameterIP() const
+  EVP_PKEY* GetDsaParameterIP() const
   {
-    return ec_key;
+    return ed_key;
   }
-  void SetDsaSignatureIP(ECDSA_SIG* signature)
+  void SetDsaSignatureIP(unsigned char* signature)
   {
     m_dsaSignatureIP = signature;
   }
-  ECDSA_SIG* GetDsaSignatureIP() const
+  unsigned char* GetDsaSignatureIP() const
   {
       return m_dsaSignatureIP;
   }
-  void SetDsaParameterPOS(EC_KEY* posparameter)
+  void SetDsaParameterPOS(EVP_PKEY* posparameter)
   {
-    ec_keypos = posparameter;
+    ed_keypos = posparameter;
   }
-  EC_KEY* GetDsaParameterPOS() const
+  EVP_PKEY* GetDsaParameterPOS() const
   {
-    return ec_keypos;
+    return ed_keypos;
   }
-  void SetDsaSignaturePOS(ECDSA_SIG* possignature)
+  void SetDsaSignaturePOS(unsigned char* possignature)
   {
     m_dsaSignaturePOS = possignature;
   }
-  ECDSA_SIG* GetDsaSignaturePOS() const
+  unsigned char* GetDsaSignaturePOS() const
   {
     return m_dsaSignaturePOS;
   }

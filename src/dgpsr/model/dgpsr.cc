@@ -25,6 +25,7 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <openssl/ed25519.h>
 
 
 #define DGPSR_LS_GOD 0
@@ -722,22 +723,22 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         SHA256(reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), digest1);
 
         //署名検証
-        if (EdDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), edKey) == 1)//署名検証　成功時１
+        if (Ed25519_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), edKey_ip) == 1)//署名検証　成功時１
         {
                 //std::cerr << "EdDSA signature verification succeeded" << std::endl;
-                if (EdDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), edKeypos) == 1)
+                if (Ed25519_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), edKey_ip) == 1)
                 {
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
                 else{
-                        //std::cerr << "EdDSA signature verification failed" << std::endl;
+                        std::cerr << "EdDSA signature verification failed" << std::endl;
                 }
                 
         }
         else
         {
-                //std::cerr << "EdDSA signature verification failed" << std::endl;
+                std::cerr << "EdDSA signature verification failed" << std::endl;
         }
 
 
@@ -948,8 +949,8 @@ RoutingProtocol::SendHello ()
         //shinato
         //ECDSA
         //署名生成
-        ECDSA_SIG* signature = GetDsaSignatureIP();
-        ECDSA_SIG* possignature = GetDsaSignaturePOS();
+        unsigned char* signature = GetDsaSignatureIP();
+        unsigned char* possignature = GetDsaSignaturePOS();
 
         /*//IP詐称署名
         std::string IPliar = "not NGPSR";

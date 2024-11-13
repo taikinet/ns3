@@ -8,6 +8,8 @@
 #include <openssl/ec.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 
 NS_LOG_COMPONENT_DEFINE ("GpsrPacket");
 
@@ -110,7 +112,7 @@ operator<< (std::ostream & os, TypeHeader const & h)
 //-----------------------------------------------------------------------------
 // HELLO
 //-----------------------------------------------------------------------------
-HelloHeader::HelloHeader (uint64_t originPosx, uint64_t originPosy, ECDSA_SIG* signature, ECDSA_SIG* possignature)
+HelloHeader::HelloHeader (uint64_t originPosx, uint64_t originPosy, unsigned char* signature, unsigned char* possignature)
   : m_originPosx (originPosx),
     m_originPosy (originPosy),
     m_signature (signature),
@@ -155,6 +157,7 @@ HelloHeader::GetSerializedSize () const
   //return 16;
 }
 
+// シリアライズ：データをバッファに書き込み、送信の準備をする
 void
 HelloHeader::Serialize (Buffer::Iterator i) const
 {
@@ -187,23 +190,15 @@ HelloHeader::Serialize (Buffer::Iterator i) const
   }
   OPENSSL_free(sig_ptrpos);*/
 
-  const BIGNUM *r, *s;
+  // 1つ目の署名（m_signature）をシリアライズ
+  unsigned char m_signature_bin[64];
+  memcpy(m_signature_bin, m_signature, 64);
+  i.Write(m_signature_bin, 64);  // Ed25519 の署名は 64 バイト
 
-  // Write first signature
-  ECDSA_SIG_get0(m_signature, &r, &s);
-  unsigned char r_bin[32];
-  unsigned char s_bin[32];
-  BN_bn2bin(r, r_bin);
-  BN_bn2bin(s, s_bin);
-  i.Write(r_bin, 32);
-  i.Write(s_bin, 32);
-
-  // Write second signature
-  ECDSA_SIG_get0(m_possignature, &r, &s);
-  BN_bn2bin(r, r_bin);
-  BN_bn2bin(s, s_bin);
-  i.Write(r_bin, 32);
-  i.Write(s_bin, 32);
+  // 2つ目の署名（m_possignature）をシリアライズ
+  unsigned char m_possignature_bin[64];  // 64 バイトの署名データを格納する配列
+  memcpy(m_possignature_bin, m_possignature, 64);  // m_possignature から 64 バイトコピー
+  i.Write(m_possignature_bin, 64);  // 2つ目の署名をシリアライズ
 
 }
 
@@ -243,19 +238,17 @@ HelloHeader::Deserialize (Buffer::Iterator start)
   m_possignature = d2i_ECDSA_SIG(NULL, &sig_ptr_copypos, sig_lenpos);
   free(sig_ptrpos);*/
 
-  // Read first signature
-  unsigned char r_bin[32];
-  unsigned char s_bin[32];
-  i.Read(r_bin, 32);
-  i.Read(s_bin, 32);
-  m_signature = ECDSA_SIG_new();
-  ECDSA_SIG_set0(m_signature, BN_bin2bn(r_bin, 32, NULL), BN_bin2bn(s_bin, 32, NULL));
+  unsigned char signature_ip_bin[64];
+  unsigned char signature_pos_bin[64];
 
-  // Read second signature
-  i.Read(r_bin, 32);
-  i.Read(s_bin, 32);
-  m_possignature = ECDSA_SIG_new();
-  ECDSA_SIG_set0(m_possignature, BN_bin2bn(r_bin, 32, NULL), BN_bin2bn(s_bin, 32, NULL));
+  // Read first signature (64 bytes for Ed25519 signature)
+  i.Read(signature_ip_bin, 64); // 64bytes分読み込んだら次の32bytesに移動する
+  m_signature = signature_ip_bin; // 署名を格納
+  std::cout << "デシリアライズ signature_ip_bin: " << signature_ip_bin << std::endl;
+
+  // Read second signature (64 bytes for Ed25519 signature)
+  i.Read(signature_pos_bin, 64);  // 64 bytesの署名を読み込む
+  m_possignature = signature_pos_bin; // 署名を格納
 
   uint32_t dist = i.GetDistanceFrom (start);
   NS_ASSERT (dist == GetSerializedSize ());

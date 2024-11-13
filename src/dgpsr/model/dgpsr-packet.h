@@ -14,6 +14,8 @@
 #include <openssl/ec.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 
 namespace ns3 {
 namespace dgpsr {
@@ -68,7 +70,7 @@ class HelloHeader : public Header
 {
 public:
   /// c-tor
-  HelloHeader (uint64_t originPosx = 0, uint64_t originPosy = 0, ECDSA_SIG* signature = nullptr, ECDSA_SIG* possignature = nullptr);
+  HelloHeader (uint64_t originPosx = 0, uint64_t originPosy = 0, unsigned char* signature = nullptr, unsigned char* possignature = nullptr);
 
   ///\name Header serialization/deserialization
   //\{
@@ -98,20 +100,20 @@ public:
   {
     return m_originPosy;
   }
-  //shinato
-  void SetSignature (ECDSA_SIG* signature)
+  // nagano
+  void SetSignature (unsigned char* signature)
   {
     m_signature = signature;
   }
-  ECDSA_SIG* GetSignature() const
+  unsigned char* GetSignature() const
   {
     return m_signature;
   }
-  void  SetSignaturePOS (ECDSA_SIG* possignature)
+  void  SetSignaturePOS (unsigned char* possignature)
   {
     m_possignature = possignature;
   }
-  ECDSA_SIG* GetSignaturePOS() const{
+  unsigned char* GetSignaturePOS() const{
     return m_possignature;
   }
 
@@ -124,8 +126,8 @@ public:
 private:
   uint64_t         m_originPosx;          ///< Originator Position x
   uint64_t         m_originPosy;          ///< Originator Position x
-  ECDSA_SIG* m_signature;
-  ECDSA_SIG* m_possignature;
+  unsigned char* m_signature;
+  unsigned char* m_possignature;
 };
 
 std::ostream & operator<< (std::ostream & os, HelloHeader const &);
