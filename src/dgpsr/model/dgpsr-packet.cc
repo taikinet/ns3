@@ -10,8 +10,10 @@
 #include <openssl/sha.h>
 #include <openssl/evp.h>
 #include <openssl/pem.h>
+#include <iostream>
+#include <iomanip>
 
-NS_LOG_COMPONENT_DEFINE ("GpsrPacket");
+NS_LOG_COMPONENT_DEFINE ("DGpsrPacket");
 
 namespace ns3 {
 namespace dgpsr {
@@ -191,15 +193,25 @@ HelloHeader::Serialize (Buffer::Iterator i) const
   OPENSSL_free(sig_ptrpos);*/
 
   // 1つ目の署名（m_signature）をシリアライズ
-  unsigned char m_signature_bin[64];
-  memcpy(m_signature_bin, m_signature, 64);
-  i.Write(m_signature_bin, 64);  // Ed25519 の署名は 64 バイト
+  unsigned char* IpSignature = GetSignature(); 
+  unsigned char* PosSignature = GetSignaturePOS(); 
 
-  // 2つ目の署名（m_possignature）をシリアライズ
-  unsigned char m_possignature_bin[64];  // 64 バイトの署名データを格納する配列
-  memcpy(m_possignature_bin, m_possignature, 64);  // m_possignature から 64 バイトコピー
-  i.Write(m_possignature_bin, 64);  // 2つ目の署名をシリアライズ
+  // ------------------------------------------------------↓出力
+  std::cout << "Packet:  IP Signature is: " << std::endl;
+  for (size_t i = 0; i < 64; i++) {
+    // 各バイトを16進数で表示
+    std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)IpSignature[i] << " ";
+    
+    // 16バイトごとに改行
+    if ((i + 1) % 16 == 0) {
+            std::cout << std::endl;
+    }
+  }
+  std::cout << std::endl;
+  // -----------------------------------------------------↑
 
+  i.Write(IpSignature, 64);  // 署名データの内容を書き込む
+  i.Write(PosSignature, 64);  // 2つ目の署名をシリアライズ
 }
 
 uint32_t
@@ -238,17 +250,17 @@ HelloHeader::Deserialize (Buffer::Iterator start)
   m_possignature = d2i_ECDSA_SIG(NULL, &sig_ptr_copypos, sig_lenpos);
   free(sig_ptrpos);*/
 
-  unsigned char signature_ip_bin[64];
-  unsigned char signature_pos_bin[64];
-
+  unsigned char* IpSignature = nullptr;
+  unsigned char* PosSignature = nullptr;
+  IpSignature = new unsigned char[64];
+  PosSignature = new unsigned char[64];
   // Read first signature (64 bytes for Ed25519 signature)
-  i.Read(signature_ip_bin, 64); // 64bytes分読み込んだら次の32bytesに移動する
-  m_signature = signature_ip_bin; // 署名を格納
-  std::cout << "デシリアライズ signature_ip_bin: " << signature_ip_bin << std::endl;
+  i.Read(IpSignature, 64); // 読み込んだら次の64bytesに移動する.署名の内容をポインタが指す配列に格納
+  SetSignature (IpSignature); // 署名を格納
 
   // Read second signature (64 bytes for Ed25519 signature)
-  i.Read(signature_pos_bin, 64);  // 64 bytesの署名を読み込む
-  m_possignature = signature_pos_bin; // 署名を格納
+  i.Read(PosSignature, 64);  // 64bytesの署名を読み込む
+  SetSignaturePOS (PosSignature);; // 署名を格納
 
   uint32_t dist = i.GetDistanceFrom (start);
   NS_ASSERT (dist == GetSerializedSize ());

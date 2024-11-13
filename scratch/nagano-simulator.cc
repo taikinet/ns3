@@ -101,7 +101,8 @@ private:
   std::string m_traceFile;
   uint32_t m_port;
   uint32_t m_sourceNode;
-  uint32_t m_sinkNode;             
+  uint32_t m_sinkNode;     
+  bool m_comment;        
 
 };
 
@@ -309,12 +310,11 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     //EdDSA
     //鍵生成（IP)
     EVP_PKEY_CTX* edCtx_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL); // 鍵を生成するためのコンテキスト
-    EVP_PKEY* edKey_ip = NULL //Edキー生成　IPアドレスに関するEdキー
+    EVP_PKEY* edKey_ip = NULL; //Edキー生成　IPアドレスに関するEdキー
     if (edCtx_ip == nullptr || EVP_PKEY_keygen_init(edCtx_ip) != 1) {
       std::cerr << "Failed to create Ed key context for IP" << std::endl;
     }
-    if (EVP_PKEY_keygen(edCtx_ip, &edKey_ip) != 1)　//公開鍵、秘密鍵ペア生成
-    {
+    if (EVP_PKEY_keygen(edCtx_ip, &edKey_ip) != 1) { // 
       std::cerr << "Failed to generate Ed key pair" << std::endl;
     }
     EVP_PKEY_CTX_free(edCtx_ip); // メモリの解放
@@ -325,25 +325,25 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     if (edCtx_pos == nullptr || EVP_PKEY_keygen_init(edCtx_pos) != 1) {
       std::cerr << "Failed to create Ed key context for Position" << std::endl;
     }
-    if (EVP_PKEY_keygen(edKey_pos, NULL) != 1)//公開鍵、秘密鍵ペア生成　
+    if (EVP_PKEY_keygen(edCtx_pos, &edKey_pos) != 1)//公開鍵、秘密鍵ペア生成　
     {
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
     EVP_PKEY_CTX_free(edCtx_pos);
     // 鍵の生成確認------------------------------------------------↓
-    std::cout << "EdDSA key pair generated" << std::endl;
-    unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
-    unsigned char priv_key[32]; // Ed25519 の秘密鍵サイズは 32 バイト
-    size_t pub_key_len = sizeof(pub_key);
-    size_t priv_key_len = sizeof(priv_key);
-    if (EVP_PKEY_get_raw_public_key(edKey_pos, pub_key, &pub_key_len) == 1) {
-        std::cout << "Public Key: ";
-        for (size_t i = 0; i < pub_key_len; ++i) {
-          printf("%02x", pub_key[i]);
-        }
-        printf("\n");
-    } else {
-        std::cerr << "Failed to get public key" << std::endl;
+    if(m_comment){
+      std::cout << "EdDSA key pair generated" << std::endl;
+      unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
+      size_t pub_key_len = sizeof(pub_key);
+      if (EVP_PKEY_get_raw_public_key(edKey_pos, pub_key, &pub_key_len) == 1) {
+          std::cout << "Public Key: ";
+          for (size_t i = 0; i < pub_key_len; ++i) {
+            printf("%02x", pub_key[i]);
+          }
+          printf("\n");
+      } else {
+          std::cerr << "Failed to get public key" << std::endl;
+      }
     }
     // -----------------------------------------------------------↑
 
@@ -354,8 +354,8 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     // 署名生成（IP）
 
     // 署名のコンテキストを作成
-    EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-    if (!md_ctx) {
+    EVP_MD_CTX *md_ctx_ip = EVP_MD_CTX_new();
+    if (!md_ctx_ip) {
       std::cerr << "Failed to create MD context" << std::endl;
       return;
     }
@@ -363,9 +363,9 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
 
     // 署名の初期化 (鍵の設定)
     
-    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, edKey_ip) <= 0) {
+    if (EVP_DigestSignInit(md_ctx_ip, NULL, NULL, NULL, edKey_ip) <= 0) {
       std::cerr << "Failed to initialize DigestSign" << std::endl;
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free(md_ctx_ip);
       return;
     }
 
@@ -374,37 +374,49 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
 
     unsigned char *signature = nullptr; 
     size_t sig_len = 64; // Ed25519 の署名サイズは 64 バイト
-    signature = static_cast<unsigned char*>(OPENSSL_malloc(sig_len));
+    signature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
     if (signature == nullptr) {
       std::cerr << "Failed to allocate memory for signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free(md_ctx_ip);
       return;
     }
     // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
-    if (EVP_DigestSign(md_ctx, signature, &sig_len, digest, SHA256_DIGEST_LENGTH) <= 0) {
+    if (EVP_DigestSign(md_ctx_ip, signature, &sig_len, digest, SHA256_DIGEST_LENGTH) <= 0) {
       std::cerr << "Failed to get signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free(md_ctx_ip);
       return;
     }
     // 出力
     std::cout << "success to create IP signature" << std::endl;
+    for (size_t i = 0; i < 64; i++) {
+      // 各バイトを16進数で表示
+      std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)signature[i] << " ";
+      
+      // 16バイトごとに改行
+      if ((i + 1) % 16 == 0) {
+          std::cout << std::endl;
+      }
+    }
+    std::cout << std::endl;
+
+    std::cout << "signature size :" << sizeof(signature) << std::endl;
 
     dgpsr.SetDsaSignatureIP(signature);
     // メモリの解放
-    EVP_MD_CTX_free(md_ctx);
+    EVP_MD_CTX_free(md_ctx_ip);
 
 
     // 署名作成（位置）
-    EVP_MD_CTX *md_ctx = EVP_MD_CTX_new();
-    if (!md_ctx) {
+    EVP_MD_CTX *md_ctx_pos = EVP_MD_CTX_new();
+    if (!md_ctx_pos) {
       std::cerr << "Failed to create MD context" << std::endl;
       return;
     }
 
     // 署名の初期化 (鍵の設定)
-    if (EVP_DigestSignInit(md_ctx, NULL, NULL, NULL, edKey_pos) <= 0) {
+    if (EVP_DigestSignInit(md_ctx_pos, NULL, NULL, NULL, edKey_pos) <= 0) {
       std::cerr << "Failed to initialize DigestSign" << std::endl;
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free(md_ctx_pos);
       return;
     }
 
@@ -412,19 +424,29 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     SHA256(reinterpret_cast<const unsigned char*>(m_traceFile.c_str()), m_traceFile.length(), digest1);
 
     unsigned char *possignature = nullptr;
-    possignature = static_cast<unsigned char*>(OPENSSL_malloc(sig_len));
+    possignature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
     // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
-    if (EVP_DigestSign(md_ctx, possignature, &sig_len, digest1, SHA256_DIGEST_LENGTH) != 1) {
+    if (EVP_DigestSign(md_ctx_pos, possignature, &sig_len, digest1, SHA256_DIGEST_LENGTH) != 1) {
       std::cerr << "Failed to get signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx);
+      EVP_MD_CTX_free(md_ctx_pos);
       return;
     }
     // 出力
-    std::cout << "success to create IP signature" << std::endl;
+    std::cout << "success to create POS signature" << std::endl;
+    for (size_t i = 0; i < 64; i++) {
+      // 各バイトを16進数で表示
+      std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)possignature[i] << " ";
+      
+      // 16バイトごとに改行
+      if ((i + 1) % 16 == 0) {
+          std::cout << std::endl;
+      }
+    }
+    std::cout << std::endl;
 
     dgpsr.SetDsaSignaturePOS(possignature);
     // メモリの解放
-    EVP_MD_CTX_free(md_ctx);
+    EVP_MD_CTX_free(md_ctx_pos);
 
     // --------------------------------------------------------------------------------↑
 
@@ -514,6 +536,7 @@ private:
     uint32_t m_sourceNode;//送信ノード
     uint32_t m_sinkNode;//受信ノード
     std::string m_protocolName;//プロトコル名
+    bool m_comment; // コメントアウトを表示するかしないか
 
     double m_txp;//送信電力(dB)
     double m_EDT;
@@ -550,8 +573,9 @@ private:
 
 VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパラメータの初期化
 : m_port (9),//ポート番号
-m_nNodes (40),//ノード数
+m_nNodes (20),//ノード数
 m_protocolName ("PGPSR"),//プロトコル名
+m_comment (false), // コメントアウトの表示の有無
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
 m_lossModelName ("ns3::LogDistancePropagationLossModel"),//電波伝搬損失モデルの名前
@@ -607,6 +631,8 @@ VanetRoutingExperiment::ParseCommandLineArguments (int argc, char **argv)
     // コマンドライン引数で以下の変数を上書きする
     cmd.AddValue ("protocolName", "name of protocol", m_protocolName);
     cmd.AddValue ("simTime", "total simulation time", m_totalSimTime);
+    cmd.AddValue ("nodeCount", "total node Count", m_nNodes);
+    cmd.AddValue ("comment", "whether to output comment", m_comment);
     cmd.Parse (argc, argv);
     //プログラムの引数を解析する。argc:引数の数(最初の要素としてメインプログラムの名前を含む),argv:nullで終わる文字列の配列,それぞれがコマンドライン引数を識別する
 

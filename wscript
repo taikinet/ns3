@@ -754,34 +754,34 @@ def add_scratch_programs(bld):
     except OSError:
         return
         
-def add_nishioka_programs(bld):
-    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
-    for dir in os.listdir('nishioka'):
-        if os.path.isdir(os.path.join('nishioka', dir)):
-            bld.recurse(os.path.join('nishioka', dir)) # after ns-3.17
-        elif dir.endswith(".cc"):
-            name = dir[:-len(".cc")]
-            obj = bld.create_ns3_program(name, all_modules)
-            obj.path = obj.path.find_dir('nishioka')
-            obj.source = dir
-            obj.target = name
-            obj.name = obj.target
-            obj.install_path = None 
+# def add_nishioka_programs(bld):
+#     all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+#     for dir in os.listdir('nishioka'):
+#         if os.path.isdir(os.path.join('nishioka', dir)):
+#             bld.recurse(os.path.join('nishioka', dir)) # after ns-3.17
+#         elif dir.endswith(".cc"):
+#             name = dir[:-len(".cc")]
+#             obj = bld.create_ns3_program(name, all_modules)
+#             obj.path = obj.path.find_dir('nishioka')
+#             obj.source = dir
+#             obj.target = name
+#             obj.name = obj.target
+#             obj.install_path = None 
             
                     
-def add_local_programs(bld):
-    all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
-    for dir in os.listdir('nishioka'):
-        if os.path.isdir(os.path.join('local', dir)):
-            bld.recurse(os.path.join('local', dir)) # after ns-3.17
-        elif dir.endswith(".cc"):
-            name = dir[:-len(".cc")]
-            obj = bld.create_ns3_program(name, all_modules)
-            obj.path = obj.path.find_dir('local')
-            obj.source = dir
-            obj.target = name
-            obj.name = obj.target
-            obj.install_path = None 
+# def add_local_programs(bld):
+#     all_modules = [mod[len("ns3-"):] for mod in bld.env['NS3_ENABLED_MODULES']]
+#     for dir in os.listdir('nishioka'):
+#         if os.path.isdir(os.path.join('local', dir)):
+#             bld.recurse(os.path.join('local', dir)) # after ns-3.17
+#         elif dir.endswith(".cc"):
+#             name = dir[:-len(".cc")]
+#             obj = bld.create_ns3_program(name, all_modules)
+#             obj.path = obj.path.find_dir('local')
+#             obj.source = dir
+#             obj.target = name
+#             obj.name = obj.target
+#             obj.install_path = None 
             
 def _get_all_task_gen(self):
     for group in self.groups:
@@ -918,7 +918,7 @@ def build(bld):
     add_scratch_programs(bld)
     #Appended by Nishioka
     #add_local_programs(bld)
-    add_nishioka_programs(bld)
+    # add_nishioka_programs(bld)
 	
     if env['NS3_ENABLED_MODULES']:
         modules = env['NS3_ENABLED_MODULES']

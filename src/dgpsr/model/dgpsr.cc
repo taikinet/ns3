@@ -20,6 +20,8 @@
 #include <ns3/udp-header.h>
 #include "ns3/seq-ts-header.h"
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 #include <openssl/ec.h>
 #include <openssl/evp.h>
@@ -715,46 +717,70 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         EVP_PKEY* edKey = GetDsaParameterIP();  //公開鍵の生成
         EVP_PKEY* edKeypos = GetDsaParameterPOS();
 
+        unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
+        size_t ver_pub_key_len = sizeof(pub_key);
+        if (EVP_PKEY_get_raw_public_key(edKeypos, pub_key, &ver_pub_key_len) == 1) {
+                std::cout << "Verify: Public Key: ";
+                for (size_t i = 0; i < ver_pub_key_len; ++i) {
+                printf("%02x", pub_key[i]);
+                }
+                printf("\n");
+        } else {
+                std::cerr << "Verify: Failed to get public key" << std::endl;
+        }
+
         //ハッシュ値
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), digest1);
 
-        auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* signature, size_t sig_len) -> bool {
-        EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
-        if (!md_ctx) {
-                std::cerr << "Failed to create EVP_MD_CTX" << std::endl;
-                return false;
-        }
-
-        bool result = false;
-        if (EVP_DigestVerifyInit(md_ctx, nullptr, nullptr, nullptr, key) == 1) {
-                if (EVP_DigestVerify(md_ctx, signature, sig_len, message, message_len) == 1) {
-                result = true;
+        auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* new_signature, size_t sig_len) -> bool {
+                EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
+                if (!md_ctx) {
+                        std::cerr << "Failed to create EVP_MD_CTX" << std::endl;
+                        return false;
                 }
-        }
-        EVP_MD_CTX_free(md_ctx);
-        return result;
+
+                bool result = false;
+                if (EVP_DigestVerifyInit(md_ctx, nullptr, nullptr, nullptr, key) == 1) {
+                        if (EVP_DigestVerify(md_ctx, new_signature, sig_len, message, message_len) == 1) {
+                        result = true;
+                        }
+                }
+                EVP_MD_CTX_free(md_ctx);
+                return result;
         };
 
         //署名検証
+        std::cout << "Verification IP Signature is: " << std::endl;
+        for (size_t i = 0; i < 64; i++) {
+                // 各バイトを16進数で表示
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)hdr.GetSignature()[i] << " ";
+                
+                // 16バイトごとに改行
+                if ((i + 1) % 16 == 0) {
+                        std::cout << std::endl;
+                }
+        }
+        std::cout << std::endl;
+
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
-                std::cerr << "EdDSA signature verification succeeded" << std::endl;
-                if (verify_signature(edKeypos, reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), hdr.GetSignaturePOS(), 64))
+                if (verify_signature(edKeypos, digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), 64))
                 {
+                        std::cerr << "EdDSA signature verification succeeded" << std::endl;
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
                 else{
-                        std::cerr << "EdDSA signature verification failed" << std::endl;
+                        std::cerr << "EdDSA possignature verification failed" << std::endl;
                 }
-                
+
         }
         else
         {
-                std::cerr << "EdDSA signature verification failed" << std::endl;
+                std::cerr << "EdDSA ipsignature verification failed" << std::endl;
         }
 
 
