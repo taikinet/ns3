@@ -26,6 +26,8 @@
 #include "ns3/callback.h"
 #include "ns3/udp-l4-protocol.h"
 #include <openssl/ec.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
 
 
 namespace ns3 {
@@ -66,30 +68,30 @@ DGpsrHelper::Set (std::string name, const AttributeValue &value)
 }
 
 //shinato
-void DGpsrHelper::SetDsaParameterIP(EC_KEY* parameter) {
+void DGpsrHelper::SetDsaParameterIP(EVP_PKEY* parameter) {
     m_dsaParameter = parameter;
 }
-EC_KEY* DGpsrHelper::GetDsaParameterIP() const {
+EVP_PKEY* DGpsrHelper::GetDsaParameterIP() const {
     return m_dsaParameter;
 }
-void DGpsrHelper::SetDsaSignatureIP(ECDSA_SIG* signature)
+void DGpsrHelper::SetDsaSignatureIP(unsigned char* signature)
 {
     m_dsaSignatureIP = signature;
 }
-ECDSA_SIG* DGpsrHelper::GetDsaSignatureIP() const{
+unsigned char* DGpsrHelper::GetDsaSignatureIP() const{
     return m_dsaSignatureIP;
 }
-void DGpsrHelper::SetDsaParameterPOS(EC_KEY* posparameter) {
+void DGpsrHelper::SetDsaParameterPOS(EVP_PKEY* posparameter) {
     m_dsaposParameter = posparameter;
 }
-EC_KEY* DGpsrHelper::GetDsaParameterPOS() const {
+EVP_PKEY* DGpsrHelper::GetDsaParameterPOS() const {
   return m_dsaposParameter;
 }
-void DGpsrHelper::SetDsaSignaturePOS(ECDSA_SIG* possignature)
+void DGpsrHelper::SetDsaSignaturePOS(unsigned char* possignature)
 {
     m_dsaposSignatureIP = possignature;
 }
-ECDSA_SIG* DGpsrHelper::GetDsaSignaturePOS() const
+unsigned char* DGpsrHelper::GetDsaSignaturePOS() const
 {
     return m_dsaposSignatureIP;
 }
