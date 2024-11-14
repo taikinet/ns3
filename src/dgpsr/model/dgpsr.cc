@@ -108,7 +108,8 @@ RoutingProtocol::RoutingProtocol ()
         MaxQueueTime (Seconds (30)),
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
-        PerimeterMode (false)
+        PerimeterMode (false),
+        m_comment (false) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
@@ -711,22 +712,25 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         Ipv4Address receiver = m_socketAddresses[socket].GetLocal ();
         NS_LOG_DEBUG("update position"<<Position.x<<Position.y );
         
-        //ECキー生成
+        //ECキー取得
         std::string protocolName = "DGPSR";
         std::string traceFile = Gettracefile();
-        EVP_PKEY* edKey = GetDsaParameterIP();  //公開鍵の生成
+        EVP_PKEY* edKey = GetDsaParameterIP();  //公開鍵の取得
         EVP_PKEY* edKeypos = GetDsaParameterPOS();
 
-        unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
-        size_t ver_pub_key_len = sizeof(pub_key);
-        if (EVP_PKEY_get_raw_public_key(edKeypos, pub_key, &ver_pub_key_len) == 1) {
-                std::cout << "Verify: Public Key: ";
-                for (size_t i = 0; i < ver_pub_key_len; ++i) {
-                printf("%02x", pub_key[i]);
+        if(m_comment){
+                unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
+                size_t ver_pub_key_len = sizeof(pub_key);
+                // 出力
+                if (EVP_PKEY_get_raw_public_key(edKeypos, pub_key, &ver_pub_key_len) == 1) {
+                        std::cout << "Verify: Public Key: ";
+                        for (size_t i = 0; i < ver_pub_key_len; ++i) {
+                        printf("%02x", pub_key[i]);
+                        }
+                        printf("\n");
+                } else {
+                        std::cerr << "Verify: Failed to get public key" << std::endl;
                 }
-                printf("\n");
-        } else {
-                std::cerr << "Verify: Failed to get public key" << std::endl;
         }
 
         //ハッシュ値
@@ -734,7 +738,7 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), digest1);
-
+        //関数の定義
         auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* new_signature, size_t sig_len) -> bool {
                 EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
                 if (!md_ctx) {
@@ -753,34 +757,42 @@ RoutingProtocol::RecvDGPSR (Ptr<Socket> socket)
         };
 
         //署名検証
-        std::cout << "Verification IP Signature is: " << std::endl;
-        for (size_t i = 0; i < 64; i++) {
-                // 各バイトを16進数で表示
-                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)hdr.GetSignature()[i] << " ";
-                
-                // 16バイトごとに改行
-                if ((i + 1) % 16 == 0) {
-                        std::cout << std::endl;
+        if(m_comment){
+                std::cout << "Verification IP Signature is: " << std::endl;
+                for (size_t i = 0; i < 64; i++) {
+                        // 各バイトを16進数で表示
+                        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)hdr.GetSignature()[i] << " ";
+                        
+                        // 16バイトごとに改行
+                        if ((i + 1) % 16 == 0) {
+                                std::cout << std::endl;
+                        }
                 }
+                std::cout << std::endl;
         }
-        std::cout << std::endl;
 
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
                 if (verify_signature(edKeypos, digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), 64))
                 {
-                        std::cerr << "EdDSA signature verification succeeded" << std::endl;
+                        if(m_comment){
+                                std::cerr << "EdDSA signature verification succeeded" << std::endl;
+                        }
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
                 else{
-                        std::cerr << "EdDSA possignature verification failed" << std::endl;
+                        if(m_comment){
+                                std::cerr << "EdDSA possignature verification failed" << std::endl;
+                        }
                 }
 
         }
         else
         {
-                std::cerr << "EdDSA ipsignature verification failed" << std::endl;
+                if(m_comment){
+                        std::cerr << "EdDSA ipsignature verification failed" << std::endl;
+                }     
         }
 
 

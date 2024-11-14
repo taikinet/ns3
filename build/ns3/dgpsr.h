@@ -181,6 +181,7 @@ private:
   Ptr<LocationService> m_locationService;
 
   IpL4Protocol::DownTargetCallback m_downTarget;
+  bool m_comment;
 
 
 

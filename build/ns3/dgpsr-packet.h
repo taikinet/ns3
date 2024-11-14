@@ -128,6 +128,7 @@ private:
   uint64_t         m_originPosy;          ///< Originator Position x
   unsigned char* m_signature;
   unsigned char* m_possignature;
+  bool m_comment;
 };
 
 std::ostream & operator<< (std::ostream & os, HelloHeader const &);

@@ -118,7 +118,8 @@ HelloHeader::HelloHeader (uint64_t originPosx, uint64_t originPosy, unsigned cha
   : m_originPosx (originPosx),
     m_originPosy (originPosy),
     m_signature (signature),
-    m_possignature (possignature)
+    m_possignature (possignature),
+    m_comment (false) //コメントの有無
 {
 }
 
@@ -197,17 +198,19 @@ HelloHeader::Serialize (Buffer::Iterator i) const
   unsigned char* PosSignature = GetSignaturePOS(); 
 
   // ------------------------------------------------------↓出力
-  std::cout << "Packet:  IP Signature is: " << std::endl;
-  for (size_t i = 0; i < 64; i++) {
-    // 各バイトを16進数で表示
-    std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)IpSignature[i] << " ";
-    
-    // 16バイトごとに改行
-    if ((i + 1) % 16 == 0) {
-            std::cout << std::endl;
+  if(m_comment){
+    std::cout << "Packet:  IP Signature is: " << std::endl;
+    for (size_t i = 0; i < 64; i++) {
+      // 各バイトを16進数で表示
+      std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)IpSignature[i] << " ";
+      
+      // 16バイトごとに改行
+      if ((i + 1) % 16 == 0) {
+              std::cout << std::endl;
+      }
     }
+    std::cout << std::endl;
   }
-  std::cout << std::endl;
   // -----------------------------------------------------↑
 
   i.Write(IpSignature, 64);  // 署名データの内容を書き込む

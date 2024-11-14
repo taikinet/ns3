@@ -90,6 +90,7 @@ public:
                 std::string traceFile);
   
   std::string ConvertToHex(const unsigned char* data, size_t length);
+  bool m_comment;    
 private:
   void ConfigureRoutingProtocol (NodeContainer &c); // コンテナに対してルーティングプロトコルを設定
   void ConfigureIPAddress (NetDeviceContainer &d, Ipv4InterfaceContainer& ic); // 
@@ -101,8 +102,7 @@ private:
   std::string m_traceFile;
   uint32_t m_port;
   uint32_t m_sourceNode;
-  uint32_t m_sinkNode;     
-  bool m_comment;        
+  uint32_t m_sinkNode;         
 
 };
 
@@ -128,7 +128,8 @@ RoutingHelper::ConvertToHex(const unsigned char* data, size_t length){ //バイ�
 }
 
 RoutingHelper::RoutingHelper () // コンストラクタ
-  : m_totalSimTime (100),//シュミレーション時間
+  : m_comment (false), // コメントの有無
+    m_totalSimTime (100),//シュミレーション時間
     m_port (9)
 {
     //送受信ノード選択
@@ -171,6 +172,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
 
   Ipv4ListRoutingHelper list;
   InternetStackHelper internet;
+  std::cout << "protocolName is " << m_protocolName << std::endl;
 
 
   if(m_protocolName=="AODV"){
@@ -336,7 +338,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
       size_t pub_key_len = sizeof(pub_key);
       if (EVP_PKEY_get_raw_public_key(edKey_pos, pub_key, &pub_key_len) == 1) {
-          std::cout << "Public Key: ";
+          std::cout << "Public IPKey: ";
           for (size_t i = 0; i < pub_key_len; ++i) {
             printf("%02x", pub_key[i]);
           }
@@ -387,19 +389,19 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       return;
     }
     // 出力
-    std::cout << "success to create IP signature" << std::endl;
-    for (size_t i = 0; i < 64; i++) {
-      // 各バイトを16進数で表示
-      std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)signature[i] << " ";
-      
-      // 16バイトごとに改行
-      if ((i + 1) % 16 == 0) {
-          std::cout << std::endl;
+    if(m_comment){
+      std::cout << "success to create IP signature" << std::endl;
+      for (size_t i = 0; i < 64; i++) {
+        // 各バイトを16進数で表示
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)signature[i] << " ";
+        
+        // 16バイトごとに改行
+        if ((i + 1) % 16 == 0) {
+            std::cout << std::endl;
+        }
       }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
-
-    std::cout << "signature size :" << sizeof(signature) << std::endl;
 
     dgpsr.SetDsaSignatureIP(signature);
     // メモリの解放
@@ -432,17 +434,19 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       return;
     }
     // 出力
-    std::cout << "success to create POS signature" << std::endl;
-    for (size_t i = 0; i < 64; i++) {
-      // 各バイトを16進数で表示
-      std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)possignature[i] << " ";
-      
-      // 16バイトごとに改行
-      if ((i + 1) % 16 == 0) {
-          std::cout << std::endl;
+    if(m_comment){
+      std::cout << "success to create POS signature" << std::endl;
+      for (size_t i = 0; i < 64; i++) {
+        // 各バイトを16進数で表示
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)possignature[i] << " ";
+        
+        // 16バイトごとに改行
+        if ((i + 1) % 16 == 0) {
+            std::cout << std::endl;
+        }
       }
+      std::cout << std::endl;
     }
-    std::cout << std::endl;
 
     dgpsr.SetDsaSignaturePOS(possignature);
     // メモリの解放
@@ -529,6 +533,7 @@ public:
     void RunFlowMonitor();
     static void CourseChange (std::ostream *os, std::string foo, Ptr<const MobilityModel> mobility);//トレースファイル読み込み
     virtual void ProcessOutputs ();//出力を処理する
+    bool m_comment; // コメントアウトを表示するかしないか
 private:
 
     uint32_t m_port;//ポート
@@ -536,7 +541,6 @@ private:
     uint32_t m_sourceNode;//送信ノード
     uint32_t m_sinkNode;//受信ノード
     std::string m_protocolName;//プロトコル名
-    bool m_comment; // コメントアウトを表示するかしないか
 
     double m_txp;//送信電力(dB)
     double m_EDT;
@@ -572,10 +576,10 @@ private:
 };
 
 VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパラメータの初期化
-: m_port (9),//ポート番号
+: m_comment (false), // コメントの有無
+m_port (9),//ポート番号
 m_nNodes (20),//ノード数
 m_protocolName ("PGPSR"),//プロトコル名
-m_comment (false), // コメントアウトの表示の有無
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
 m_lossModelName ("ns3::LogDistancePropagationLossModel"),//電波伝搬損失モデルの名前
@@ -632,7 +636,6 @@ VanetRoutingExperiment::ParseCommandLineArguments (int argc, char **argv)
     cmd.AddValue ("protocolName", "name of protocol", m_protocolName);
     cmd.AddValue ("simTime", "total simulation time", m_totalSimTime);
     cmd.AddValue ("nodeCount", "total node Count", m_nNodes);
-    cmd.AddValue ("comment", "whether to output comment", m_comment);
     cmd.Parse (argc, argv);
     //プログラムの引数を解析する。argc:引数の数(最初の要素としてメインプログラムの名前を含む),argv:nullで終わる文字列の配列,それぞれがコマンドライン引数を識別する
 
