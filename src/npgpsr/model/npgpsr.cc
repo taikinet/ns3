@@ -718,26 +718,30 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         //ハッシュ値
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // 位置情報のXとYを連結してハッシュに通す
+        std::string positionX_str = std::to_string(Position.x);
+        std::string positionY_str = std::to_string(Position.y);
+        std::string combined_position = positionX_str + positionY_str;
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(traceFile.c_str()), traceFile.length(), digest1);
+        SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
 
         //署名検証
         if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1)//署名検証　成功時１
         {
-                //std::cerr << "ECDSA signature verification succeeded" << std::endl;
+                std::cerr << "ECDSA signature verification succeeded" << std::endl;
                 if (ECDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), ecKeypos) == 1)
                 {
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
                 else{
-                        //std::cerr << "ECDSA signature verification failed" << std::endl;
+                        std::cerr << "ECDSA signature verification failed" << std::endl;
                 }
                 
         }
         else
         {
-                //std::cerr << "ECDSA signature verification failed" << std::endl;
+                std::cerr << "ECDSA signature verification failed" << std::endl;
         }
 
 
@@ -940,16 +944,34 @@ RoutingProtocol::SendHello ()
 		
         Ptr<MobilityModel> MM = m_ipv4->GetObject<MobilityModel> ();
 
-        positionX = MM->GetPosition ().x;
-        positionY = MM->GetPosition ().y;
+        // 小数点以下切り捨て
+        positionX = static_cast<int>(MM->GetPosition().x);
+        positionY = static_cast<int>(MM->GetPosition().y);
 
         //uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
 
-        //shinato
-        //ECDSA
-        //署名生成
-        ECDSA_SIG* signature = GetDsaSignatureIP();
-        ECDSA_SIG* possignature = GetDsaSignaturePOS();
+        // nagano // -----------------------------------------------------------署名作成↓
+        // ECDSA
+        //署名生成（IP)
+        std::string protocolName = "NDGPSR";
+        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        ECDSA_SIG* signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, ecKey_ip);//署名生成
+        if (signature == nullptr)
+        {
+        std::cerr << "Failed to generate ECDSA signature" << std::endl;
+        }
+        //署名生成（位置)
+        std::string positionX_str = std::to_string(positionX);
+        std::string positionY_str = std::to_string(positionY);
+        std::string combined_position = positionX_str + positionY_str;
+        unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
+        ECDSA_SIG* possignature = ECDSA_do_sign(digest1, SHA256_DIGEST_LENGTH, ecKey_pos);//署名生成
+        if (possignature == nullptr)
+        {
+        std::cerr << "Failed to generate ECDSA signature" << std::endl;
+        }
 
         /*//IP詐称署名
         std::string IPliar = "not NGPSR";

@@ -713,27 +713,28 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         Ipv4Address receiver = m_socketAddresses[socket].GetLocal ();
         NS_LOG_DEBUG("update position"<<Position.x<<Position.y );
         
- 
+        //Edキー生成
         std::string protocolName = "NDGPSR";
         std::string traceFile = Gettracefile();
-        //公開鍵の取得
         EVP_PKEY* edKey = GetDsaParameterIP(); 
         EVP_PKEY* edKeypos = GetDsaParameterPOS();
 
-        // if(m_comment){
-        //         unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
-        //         size_t ver_pub_key_len = sizeof(pub_key);
-                // 出力
-        //         if (EVP_PKEY_get_raw_public_key(edKeypos, pub_key, &ver_pub_key_len) == 1) {
-        //                 std::cout << "Verify: Public POS Key: ";
-        //                 for (size_t i = 0; i < ver_pub_key_len; ++i) {
-        //                 printf("%02x", pub_key[i]);
-        //                 }
-        //                 printf("\n");
-        //         } else {
-        //                 std::cerr << "Verify: Failed to get public key" << std::endl;
-        //         }
-        // }
+        // 出力
+        /* 
+        if(m_comment){
+              unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
+              size_t ver_pub_key_len = sizeof(pub_key);
+              if (EVP_PKEY_get_raw_public_key(edKeypos, pub_key, &ver_pub_key_len) == 1) {
+                      std::cout << "Verify: Public POS Key: ";
+                      for (size_t i = 0; i < ver_pub_key_len; ++i) {
+                      printf("%02x", pub_key[i]);
+                      }
+                      printf("\n");
+              } else {
+                      std::cerr << "Verify: Failed to get public key" << std::endl;
+              }
+        }*/
+
         // 出力
         if(m_comment){
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
@@ -749,7 +750,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         std::string combined_position = positionX_str + positionY_str;
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
-        //関数の定義
+        //関数の定義-----------------------------------------------↓
         auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* new_signature, size_t sig_len) -> bool {
                 EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
                 if (!md_ctx) {
@@ -766,6 +767,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 EVP_MD_CTX_free(md_ctx);
                 return result;
         };
+        // ---------------------------------------------------------↑
 
         //署名検証
         if(m_comment){
@@ -1038,6 +1040,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
 		
         Ptr<MobilityModel> MM = m_ipv4->GetObject<MobilityModel> ();
 
+        //小数点以下切り捨て
         positionX = static_cast<int>(MM->GetPosition().x);
         positionY = static_cast<int>(MM->GetPosition().y);
 
