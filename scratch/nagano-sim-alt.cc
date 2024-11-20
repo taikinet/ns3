@@ -16,7 +16,7 @@
 #include "ns3/gpsr-module.h"
 #include "ns3/igpsr-module.h"
 #include "ns3/pgpsr-module.h"
-#include "ns3/fixed-dgpsr-module.h"
+#include "ns3/ndgpsr-module.h"
 #include "ns3/lgpsr-module.h"
 #include "ns3/ngpsr-module.h"
 #include "ns3/flow-monitor.h"
@@ -35,7 +35,7 @@
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("nagano-simulator");//環境変数。外部から参照できる
+NS_LOG_COMPONENT_DEFINE ("nagano-simu-alt");//環境変数。外部から参照できる
 
 class WifiPhyStats : public Object//wifi設定で使用するクラス　　Objectクラスを継承
 {
@@ -168,7 +168,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
   LGpsrHelper lgpsr;
   PGpsrHelper pgpsr;
   NGpsrHelper ngpsr;
-  DGpsrHelper dgpsr;
+  NDGpsrHelper ndgpsr;
 
   Ipv4ListRoutingHelper list;
   InternetStackHelper internet;
@@ -308,7 +308,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     internet.SetRoutingHelper (list);//インストール時に使用するルーティングヘルパーを設定する
     internet.Install(c);//各ノードに(Ipv4,Ipv6,Udp,Tcp)クラスの実装を集約する
   }
-  else if(m_protocolName=="DGPSR"){
+  else if(m_protocolName=="NDGPSR"){
     //EdDSA
     //鍵生成（IP)
     EVP_PKEY_CTX* edCtx_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL); // 鍵を生成するためのコンテキスト
@@ -338,7 +338,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
       size_t pub_key_len = sizeof(pub_key);
       if (EVP_PKEY_get_raw_public_key(edKey_pos, pub_key, &pub_key_len) == 1) {
-          std::cout << "Public IPKey: ";
+          std::cout << "Public POSKey: ";
           for (size_t i = 0; i < pub_key_len; ++i) {
             printf("%02x", pub_key[i]);
           }
@@ -349,112 +349,14 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     }
     // -----------------------------------------------------------↑
 
-    dgpsr.SetDsaParameterIP(edKey_ip);//IPアドレス署名用のパラメーター
-    dgpsr.SetDsaParameterPOS(edKey_pos);
-    dgpsr.Settracefile(m_traceFile);
+    ndgpsr.SetDsaParameterIP(edKey_ip);//IPアドレス署名用のパラメーター
+    ndgpsr.SetDsaParameterPOS(edKey_pos);
+    ndgpsr.Settracefile(m_traceFile);
     // --------------------------------------------------------------------------------↓
-    // 署名生成（IP）
-
-    // 署名のコンテキストを作成
-    EVP_MD_CTX *md_ctx_ip = EVP_MD_CTX_new();
-    if (!md_ctx_ip) {
-      std::cerr << "Failed to create MD context" << std::endl;
-      return;
-    }
-
-
-    // 署名の初期化 (鍵の設定)
-    
-    if (EVP_DigestSignInit(md_ctx_ip, NULL, NULL, NULL, edKey_ip) <= 0) {
-      std::cerr << "Failed to initialize DigestSign" << std::endl;
-      EVP_MD_CTX_free(md_ctx_ip);
-      return;
-    }
-
-    unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-    SHA256(reinterpret_cast<const unsigned char*>(m_protocolName.c_str()), m_protocolName.length(), digest);
-
-    unsigned char *signature = nullptr; 
-    size_t sig_len = 64; // Ed25519 の署名サイズは 64 バイト
-    signature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
-    if (signature == nullptr) {
-      std::cerr << "Failed to allocate memory for signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx_ip);
-      return;
-    }
-    // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
-    if (EVP_DigestSign(md_ctx_ip, signature, &sig_len, digest, SHA256_DIGEST_LENGTH) <= 0) {
-      std::cerr << "Failed to get signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx_ip);
-      return;
-    }
-    // 出力
-    if(m_comment){
-      std::cout << "success to create IP signature" << std::endl;
-      for (size_t i = 0; i < 64; i++) {
-        // 各バイトを16進数で表示
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)signature[i] << " ";
-        
-        // 16バイトごとに改行
-        if ((i + 1) % 16 == 0) {
-            std::cout << std::endl;
-        }
-      }
-      std::cout << std::endl;
-    }
-
-    dgpsr.SetDsaSignatureIP(signature);
-    // メモリの解放
-    EVP_MD_CTX_free(md_ctx_ip);
-
-
-    // 署名作成（位置）
-    EVP_MD_CTX *md_ctx_pos = EVP_MD_CTX_new();
-    if (!md_ctx_pos) {
-      std::cerr << "Failed to create MD context" << std::endl;
-      return;
-    }
-
-    // 署名の初期化 (鍵の設定)
-    if (EVP_DigestSignInit(md_ctx_pos, NULL, NULL, NULL, edKey_pos) <= 0) {
-      std::cerr << "Failed to initialize DigestSign" << std::endl;
-      EVP_MD_CTX_free(md_ctx_pos);
-      return;
-    }
-
-    unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-    SHA256(reinterpret_cast<const unsigned char*>(m_traceFile.c_str()), m_traceFile.length(), digest1);
-
-    unsigned char *possignature = nullptr;
-    possignature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
-    // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
-    if (EVP_DigestSign(md_ctx_pos, possignature, &sig_len, digest1, SHA256_DIGEST_LENGTH) != 1) {
-      std::cerr << "Failed to get signature" << std::endl;
-      EVP_MD_CTX_free(md_ctx_pos);
-      return;
-    }
-    // 出力
-    if(m_comment){
-      std::cout << "success to create POS signature" << std::endl;
-      for (size_t i = 0; i < 64; i++) {
-        // 各バイトを16進数で表示
-        std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)possignature[i] << " ";
-        
-        // 16バイトごとに改行
-        if ((i + 1) % 16 == 0) {
-            std::cout << std::endl;
-        }
-      }
-      std::cout << std::endl;
-    }
-
-    dgpsr.SetDsaSignaturePOS(possignature);
-    // メモリの解放
-    EVP_MD_CTX_free(md_ctx_pos);
 
     // --------------------------------------------------------------------------------↑
 
-    list.Add (dgpsr, 100);
+    list.Add (ndgpsr, 100);
     internet.SetRoutingHelper (list);
     internet.Install(c);
 
