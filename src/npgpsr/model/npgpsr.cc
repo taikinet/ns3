@@ -20,6 +20,8 @@
 #include <ns3/udp-header.h>
 #include "ns3/seq-ts-header.h"
 #include <string>
+#include <iostream>
+#include <iomanip>
 
 #include <openssl/ec.h>
 #include <openssl/evp.h>
@@ -106,7 +108,8 @@ RoutingProtocol::RoutingProtocol ()
         MaxQueueTime (Seconds (30)),
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
-        PerimeterMode (false)
+        PerimeterMode (false),
+        m_comment (true) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
@@ -725,23 +728,49 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
 
+        // 出力-----------------------------------------------------------------↓
+        if(m_comment){
+                std::cout << "VeriSig: "<< combined_position << std::endl;
+                const BIGNUM *r = nullptr;
+                const BIGNUM *s = nullptr;
+                ECDSA_SIG_get0(hdr.GetSignaturePOS(), &r, &s); // r と s を取得
+
+                // バイト配列に変換
+                unsigned char r_bin[32] = {0};
+                unsigned char s_bin[32] = {0};
+                BN_bn2binpad(r, r_bin, 32); // r を32バイトにパディングして格納
+                BN_bn2binpad(s, s_bin, 32); // s を32バイトにパディングして格納
+
+                // r と s を表示
+                std::cout << "VeriSig: Signature r: ";
+                for (int i = 0; i < 32; i++) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)r_bin[i] << " ";
+                }
+                std::cout << "\nVeriSig: Signature s: ";
+                for (int i = 0; i < 32; i++) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)s_bin[i] << " ";
+                }
+                std::cout << std::endl;
+        }
+        // 出力-------------------------------------------------------------------↑
+
         //署名検証
         if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1)//署名検証　成功時１
         {
-                std::cerr << "ECDSA signature verification succeeded" << std::endl;
                 if (ECDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), ecKeypos) == 1)
                 {
+                        std::cerr << "ECDSA signature verification succeeded" << std::endl;
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
                 else{
-                        std::cerr << "ECDSA signature verification failed" << std::endl;
+                        std::cerr << "ECDSA POS signature verification failed" << std::endl;
                 }
                 
         }
         else
         {
-                std::cerr << "ECDSA signature verification failed" << std::endl;
+                std::cerr << "ECDSA IP signature verification failed" << std::endl;
         }
 
 
@@ -948,12 +977,15 @@ RoutingProtocol::SendHello ()
         positionX = static_cast<int>(MM->GetPosition().x);
         positionY = static_cast<int>(MM->GetPosition().y);
 
+        EC_KEY* ecKey_ip = GetDsaParameterIP();
+        EC_KEY* ecKey_pos = GetDsaParameterPOS();
+
         //uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
 
         // nagano // -----------------------------------------------------------署名作成↓
         // ECDSA
         //署名生成（IP)
-        std::string protocolName = "NDGPSR";
+        std::string protocolName = "NPGPSR";
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
         ECDSA_SIG* signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, ecKey_ip);//署名生成
@@ -971,6 +1003,30 @@ RoutingProtocol::SendHello ()
         if (possignature == nullptr)
         {
         std::cerr << "Failed to generate ECDSA signature" << std::endl;
+        }
+
+        if(m_comment){
+                std::cout << "GeneSig: " << combined_position << std::endl;
+                const BIGNUM *r = nullptr;
+                const BIGNUM *s = nullptr;
+                ECDSA_SIG_get0(possignature, &r, &s); // r と s を取得
+
+                // バイト配列に変換
+                unsigned char r_bin[32] = {0};
+                unsigned char s_bin[32] = {0};
+                BN_bn2binpad(r, r_bin, 32); // r を32バイトにパディングして格納
+                BN_bn2binpad(s, s_bin, 32); // s を32バイトにパディングして格納
+
+                // r と s を表示
+                std::cout << "GeneSig: Signature r: ";
+                for (int i = 0; i < 32; i++) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)r_bin[i] << " ";
+                }
+                std::cout << "\nGeneSig: Signature s: ";
+                for (int i = 0; i < 32; i++) {
+                std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)s_bin[i] << " ";
+                }
+                std::cout << std::endl;
         }
 
         /*//IP詐称署名

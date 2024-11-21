@@ -250,14 +250,14 @@ HelloHeader::Deserialize (Buffer::Iterator start)
   i.Read(s_bin, 32);
   m_signature = ECDSA_SIG_new();
   ECDSA_SIG_set0(m_signature, BN_bin2bn(r_bin, 32, NULL), BN_bin2bn(s_bin, 32, NULL));
-  SetSignature(m_signature)
+  SetSignature(m_signature);
 
   // Read second signature
   i.Read(r_bin, 32);
   i.Read(s_bin, 32);
   m_possignature = ECDSA_SIG_new();
   ECDSA_SIG_set0(m_possignature, BN_bin2bn(r_bin, 32, NULL), BN_bin2bn(s_bin, 32, NULL));
-  SetSignaturePOS(m_possignature)
+  SetSignaturePOS(m_possignature);
 
   uint32_t dist = i.GetDistanceFrom (start);
   NS_ASSERT (dist == GetSerializedSize ());
