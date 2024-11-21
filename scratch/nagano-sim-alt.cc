@@ -15,7 +15,7 @@
 #include "ns3/wave-bsm-helper.h"
 #include "ns3/gpsr-module.h"
 #include "ns3/igpsr-module.h"
-#include "ns3/pgpsr-module.h"
+#include "ns3/npgpsr-module.h"
 #include "ns3/ndgpsr-module.h"
 #include "ns3/lgpsr-module.h"
 #include "ns3/ngpsr-module.h"
@@ -166,7 +166,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
   GpsrHelper gpsr;
   IgpsrHelper igpsr;
   LGpsrHelper lgpsr;
-  PGpsrHelper pgpsr;
+  NPGpsrHelper npgpsr;
   NGpsrHelper ngpsr;
   NDGpsrHelper ndgpsr;
 
@@ -199,7 +199,7 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     internet.SetRoutingHelper (list);
     internet.Install(c);
   }
-  else if(m_protocolName=="PGPSR"){
+  else if(m_protocolName=="NPGPSR"){
     //ECDSA
     //鍵生成（IP)
     EC_KEY* ecKey_ip = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成　IPアドレスに関するECキー
@@ -222,30 +222,11 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
 
-    pgpsr.SetDsaParameterIP(ecKey_ip);//IPアドレス署名用のパラメーター
-    pgpsr.SetDsaParameterPOS(ecKey_pos);
-    pgpsr.Settracefile(m_traceFile);
+    npgpsr.SetDsaParameterIP(ecKey_ip); //IPアドレス署名用のパラメーター
+    npgpsr.SetDsaParameterPOS(ecKey_pos);
+    npgpsr.Settracefile(m_traceFile);
 
-    //署名生成（IP)
-    unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-    SHA256(reinterpret_cast<const unsigned char*>(m_protocolName.c_str()), m_protocolName.length(), digest);
-    ECDSA_SIG* signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, ecKey_ip);//署名生成
-    if (signature == nullptr)
-    {
-      std::cerr << "Failed to generate ECDSA signature" << std::endl;
-    }
-    pgpsr.SetDsaSignatureIP(signature);
-    //署名生成（位置)
-    unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-    SHA256(reinterpret_cast<const unsigned char*>(m_traceFile.c_str()), m_traceFile.length(), digest1);
-    ECDSA_SIG* possignature = ECDSA_do_sign(digest1, SHA256_DIGEST_LENGTH, ecKey_pos);//署名生成
-    if (possignature == nullptr)
-    {
-      std::cerr << "Failed to generate ECDSA signature" << std::endl;
-    }
-    pgpsr.SetDsaSignaturePOS(possignature);
-
-    list.Add (pgpsr, 100);
+    list.Add (npgpsr, 100);
     internet.SetRoutingHelper (list);
     internet.Install(c);
 
@@ -349,12 +330,9 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     }
     // -----------------------------------------------------------↑
 
-    ndgpsr.SetDsaParameterIP(edKey_ip);//IPアドレス署名用のパラメーター
+    ndgpsr.SetDsaParameterIP(edKey_ip); //IPアドレス署名用のパラメーター
     ndgpsr.SetDsaParameterPOS(edKey_pos);
     ndgpsr.Settracefile(m_traceFile);
-    // --------------------------------------------------------------------------------↓
-
-    // --------------------------------------------------------------------------------↑
 
     list.Add (ndgpsr, 100);
     internet.SetRoutingHelper (list);
@@ -481,7 +459,7 @@ VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパ�
 : m_comment (false), // コメントの有無
 m_port (9),//ポート番号
 m_nNodes (20),//ノード数
-m_protocolName ("PGPSR"),//プロトコル名
+m_protocolName ("NPGPSR"),//プロトコル名
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
 m_lossModelName ("ns3::LogDistancePropagationLossModel"),//電波伝搬損失モデルの名前
