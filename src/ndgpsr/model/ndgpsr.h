@@ -142,6 +142,75 @@ public:
     return;
   }
 
+// nagano
+  static double sumGeneIpSigTime;
+  static double sumGenePosSigTime;
+  static int cntGeneIpSig;
+  static int cntGenePosSig;
+  static double sumVeriIpSigTime;
+  static double sumVeriPosSigTime;
+  static int cntVeriIpSig;
+  static int cntVeriPosSig;
+
+  // double GetGeneIpSigTime() const
+  // {
+  //   return sumGeneIpSigTime.GetSeconds();
+  // }
+
+  // double GetGenePosSigTime() const
+  // {
+  //   return sumGenePosSigTime.GetSeconds();
+  // }
+
+  // double GetGeneSigTime() const
+  // {
+  //   return sumGeneIpSigTime.GetSeconds() + sumGenePosSigTime.GetSeconds();
+  // }
+
+  // int GetGeneIpSigCnt() const
+  // {
+  //   return cntGeneIpSig;
+  // }
+
+  // int GetGenePosSigCnt() const
+  // {
+  //   return cntGenePosSig;
+  // }
+
+  // int GetGeneSigCnt() const
+  // {
+  //   return cntGeneIpSig + cntGenePosSig;
+  // }
+
+  // double GetVeriIpSigTime() const
+  // {
+  //   return sumVeriIpSigTime.GetSeconds();
+  // }
+
+  // double GetVeriPosSigTime() const
+  // {
+  //   return sumVeriPosSigTime.GetSeconds();
+  // }
+
+  // double GetVeriSigTime() const
+  // {
+  //   return sumVeriIpSigTime.GetSeconds() + sumVeriPosSigTime.GetSeconds();
+  // }
+
+  // int GetVeriIpSigCnt() const
+  // {
+  //   return cntVeriIpSig;
+  // }
+
+  // int GetVeriPosSigCnt() const
+  // {
+  //   return cntVeriPosSig;
+  // }
+
+  // int GetVeriSigCnt() const
+  // {
+  //   return cntVeriIpSig + cntVeriPosSig;
+  // }
 
 private:
   ///　プロトコル操作を開始
