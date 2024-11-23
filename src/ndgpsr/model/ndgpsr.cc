@@ -27,6 +27,8 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <thread> // std::this_thread::sleep_for
+#include <chrono> // std::chrono::seconds
 
 
 #define NDGPSR_LS_GOD 0
@@ -37,6 +39,15 @@ NS_LOG_COMPONENT_DEFINE ("NDGpsrRoutingProtocol");
 
 namespace ns3 {
 namespace ndgpsr {
+
+double RoutingProtocol::sumGeneIpSigTime = 0.0;   // 初期化値を設定
+double RoutingProtocol::sumGenePosSigTime = 0.0;
+int RoutingProtocol::cntGeneIpSig = 0;
+int RoutingProtocol::cntGenePosSig = 0;
+double RoutingProtocol::sumVeriIpSigTime = 0.0;
+double RoutingProtocol::sumVeriPosSigTime = 0.0;
+int RoutingProtocol::cntVeriIpSig = 0;
+int RoutingProtocol::cntVeriPosSig = 0;
 
 
 //DeferedRouteOutputTagクラスが最初に定義され、0に初期化されたm_isCallFromL3フラグを含む。
@@ -784,14 +795,33 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 std::cout << std::endl;
         }
 
+
+        // ip時間計測開始
+        auto startIp = std::chrono::high_resolution_clock::now();
+
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
+                // 時間計測終了
+                auto endIp = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double> durationIp = endIp - startIp;
+                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
+                sumVeriIpSigTime += durationIp.count() * 1000000;
+                cntVeriIpSig ++;
+                // pos時間計測開始
+                auto startPos = std::chrono::high_resolution_clock::now();
+
                 if (verify_signature(edKeypos, digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), 64))
                 {
                         if(m_comment){
                                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
                                 std::cerr << "Node" << nodeId << ": EdDSA signature verification succeeded\n" << std::endl;
                         }
+                        // pos時間計測終了
+                        auto endPos = std::chrono::high_resolution_clock::now();
+                        std::chrono::duration<double> durationPos = endPos - startPos;
+                        std::cout << "署名検証時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
+                        sumVeriPosSigTime += durationPos.count() * 1000000;
+                        cntVeriPosSig ++;
                         //近隣ノードの情報更新
                         UpdateRouteToNeighbor (sender, receiver, Position);
                 }
@@ -1055,6 +1085,9 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         unsigned char *possignature = nullptr; 
         size_t sig_len = 64; // Ed25519 の署名サイズは 64 バイト
 
+        // 時間計測開始
+        auto startIp = std::chrono::high_resolution_clock::now();
+
         // 署名生成（IP）
         std::string protocolName = "NDGPSR";
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
@@ -1072,6 +1105,14 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         EVP_MD_CTX_free(md_ctx_ip);
         return;
         }
+
+        // 時間計測終了
+        auto endIp = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationIp = endIp - startIp;
+        std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
+        sumGeneIpSigTime += durationIp.count() * 1000000;
+        cntGeneIpSig ++;
+
         // 出力
         // if(m_comment){
         //         std::cout << "success to create IP signature" << std::endl;
@@ -1091,6 +1132,9 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
 
 
         // 署名作成（位置）
+        // 時間計測開始
+        auto startPos = std::chrono::high_resolution_clock::now();
+
         // 位置情報のXとYを連結してハッシュに通す
         std::string positionX_str = std::to_string(positionX);
         std::string positionY_str = std::to_string(positionY);
@@ -1105,6 +1149,14 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         EVP_MD_CTX_free(md_ctx_pos);
         return;
         }
+
+        // 時間計測終了
+        auto endPos = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationPos = endPos - startPos;
+        std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μs" << std::endl;
+        sumGenePosSigTime += durationPos.count() * 1000000;
+        cntGenePosSig ++;
+
         // 出力
         if(m_comment){
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
