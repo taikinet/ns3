@@ -752,15 +752,6 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 std::cout << "Node" << nodeId << ": VeriSig : postionX is: " << Position.x << std::endl;
         }
 
-        //ハッシュ値
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
-        // 位置情報のXとYを連結してハッシュに通す
-        std::string positionX_str = std::to_string(Position.x);
-        std::string positionY_str = std::to_string(Position.y);
-        std::string combined_position = positionX_str + positionY_str;
-        unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
         //関数の定義-----------------------------------------------↓
         auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* new_signature, size_t sig_len) -> bool {
                 EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
@@ -779,8 +770,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 return result;
         };
         // ---------------------------------------------------------↑
-
-        //署名検証
+        // 出力--------------------------------------------------------↓
         if(m_comment){
                 std::cout << "Verification POS Signature is: " << std::endl;
                 for (size_t i = 0; i < 64; i++) {
@@ -794,10 +784,15 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 }
                 std::cout << std::endl;
         }
+        // -------------------------------------------------------------↑
 
+        //署名検証
 
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
+        //ハッシュ値
+        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
 
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
@@ -809,6 +804,13 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 cntVeriIpSig ++;
                 // pos時間計測開始
                 auto startPos = std::chrono::high_resolution_clock::now();
+                 // 位置情報のXとYを連結してハッシュに通す
+                std::string positionX_str = std::to_string(Position.x);
+                std::string positionY_str = std::to_string(Position.y);
+                std::string combined_position = positionX_str + positionY_str;
+                unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+                SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
+
 
                 if (verify_signature(edKeypos, digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), 64))
                 {
@@ -1109,7 +1111,6 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         // 時間計測終了
         auto endIp = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> durationIp = endIp - startIp;
-        std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
         sumGeneIpSigTime += durationIp.count() * 1000000;
         cntGeneIpSig ++;
 
@@ -1153,12 +1154,13 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         // 時間計測終了
         auto endPos = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double> durationPos = endPos - startPos;
-        std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μs" << std::endl;
         sumGenePosSigTime += durationPos.count() * 1000000;
         cntGenePosSig ++;
 
         // 出力
         if(m_comment){
+                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
+                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μs" << std::endl;
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
                 std::cout << "Node" << nodeId << ": success to create POS signature" << std::endl;
                 for (size_t i = 0; i < 64; i++) {
