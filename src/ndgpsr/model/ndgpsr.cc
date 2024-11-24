@@ -723,6 +723,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         Ipv4Address sender = inetSourceAddr.GetIpv4 ();
         Ipv4Address receiver = m_socketAddresses[socket].GetLocal ();
         NS_LOG_DEBUG("update position"<<Position.x<<Position.y );
+// nagano-------------------------------------------------------------------------↓
         
         //Edキー生成
         std::string protocolName = "NDGPSR";
@@ -844,6 +845,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
 
 
 }
+// nagano-------------------------------------------------------------------------↑
 
 //shinato
 void
@@ -1075,6 +1077,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         //小数点以下切り捨て
         positionX = static_cast<int>(MM->GetPosition().x);
         positionY = static_cast<int>(MM->GetPosition().y);
+// nagano-----------------------------------------------------------------------↓
 
         if(m_comment){
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
@@ -1177,7 +1180,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         // メモリの解放
         EVP_MD_CTX_free(md_ctx_pos);
 
-        // --------------------------------------------------------------------------------↑
+        // nagano--------------------------------------------------------------------------------↑
 
         //uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
 
