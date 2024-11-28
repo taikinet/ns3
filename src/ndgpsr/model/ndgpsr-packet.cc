@@ -193,6 +193,7 @@ HelloHeader::Serialize (Buffer::Iterator i) const
   }
   OPENSSL_free(sig_ptrpos);*/
 
+  // nagano
   // 1つ目の署名（m_signature）をシリアライズ
   unsigned char* IpSignature = GetSignature(); 
   unsigned char* PosSignature = GetSignaturePOS(); 
@@ -253,6 +254,8 @@ HelloHeader::Deserialize (Buffer::Iterator start)
   m_possignature = d2i_ECDSA_SIG(NULL, &sig_ptr_copypos, sig_lenpos);
   free(sig_ptrpos);*/
 
+
+  // nagano
   unsigned char* IpSignature = nullptr;
   unsigned char* PosSignature = nullptr;
   IpSignature = new unsigned char[64];

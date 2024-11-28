@@ -1761,6 +1761,11 @@
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
+    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 ../src/core/model/make-event.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/core/model/make-event.cc.1.o", 
+    "file": "../src/core/model/make-event.cc"
+  }, 
+  {
+    "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
     "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 ../src/wifi/model/nist-error-rate-model.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/wifi/model/nist-error-rate-model.cc.1.o", 
     "file": "../src/wifi/model/nist-error-rate-model.cc"
   }, 
@@ -1956,11 +1961,6 @@
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
-    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -fno-strict-aliasing -fstack-protector-strong -fwrapv -fvisibility=hidden -Wno-array-bounds -pthread -pthread -I. -I.. -Isrc/csma/bindings -I../src/csma/bindings -I/usr/include/python2.7 -I/usr/include/x86_64-linux-gnu/python2.7 -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DNS_DEPRECATED= -DNS3_DEPRECATED_H -DHAVE_PYEXT=1 -D_FORTIFY_SOURCE=2 -DNDEBUG -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 src/csma/bindings/ns3module.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/csma/bindings/ns3module.cc.5.o", 
-    "file": "src/csma/bindings/ns3module.cc"
-  }, 
-  {
-    "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
     "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 ../src/mesh/model/mesh-wifi-beacon.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/mesh/model/mesh-wifi-beacon.cc.1.o", 
     "file": "../src/mesh/model/mesh-wifi-beacon.cc"
   }, 
@@ -2143,6 +2143,11 @@
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
     "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 ../src/wifi/model/spectrum-wifi-phy.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/wifi/model/spectrum-wifi-phy.cc.1.o", 
     "file": "../src/wifi/model/spectrum-wifi-phy.cc"
+  }, 
+  {
+    "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
+    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -pthread -I. -I.. -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-anr.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/lte/model/lte-anr.cc.1.o", 
+    "file": "../src/lte/model/lte-anr.cc"
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
@@ -2691,8 +2696,8 @@
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
-    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -pthread -I. -I.. -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-anr.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/lte/model/lte-anr.cc.1.o", 
-    "file": "../src/lte/model/lte-anr.cc"
+    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 ../src/mobility/model/steady-state-random-waypoint-mobility-model.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/mobility/model/steady-state-random-waypoint-mobility-model.cc.1.o", 
+    "file": "../src/mobility/model/steady-state-random-waypoint-mobility-model.cc"
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
@@ -3293,11 +3298,6 @@
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
     "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -pthread -I. -I.. -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-ue-phy-sap.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/lte/model/lte-ue-phy-sap.cc.1.o", 
     "file": "../src/lte/model/lte-ue-phy-sap.cc"
-  }, 
-  {
-    "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
-    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -pthread -I. -I.. -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-handover-algorithm.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/lte/model/lte-handover-algorithm.cc.1.o", 
-    "file": "../src/lte/model/lte-handover-algorithm.cc"
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
@@ -4816,8 +4816,8 @@
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
-    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 ../src/core/model/make-event.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/core/model/make-event.cc.1.o", 
-    "file": "../src/core/model/make-event.cc"
+    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -pthread -I. -I.. -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 ../src/lte/model/lte-handover-algorithm.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/lte/model/lte-handover-algorithm.cc.1.o", 
+    "file": "../src/lte/model/lte-handover-algorithm.cc"
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
@@ -4986,8 +4986,8 @@
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
-    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -pthread -I. -I.. -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DHAVE_GSL=1 -DHAVE_SQLITE3=1 ../src/mobility/model/steady-state-random-waypoint-mobility-model.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/mobility/model/steady-state-random-waypoint-mobility-model.cc.1.o", 
-    "file": "../src/mobility/model/steady-state-random-waypoint-mobility-model.cc"
+    "command": "/usr/bin/g++ -O0 -ggdb -g3 -Wall -Werror -std=c++11 -Wno-error=deprecated-declarations -fstrict-aliasing -Wstrict-aliasing -I/usr/include/openssl -fPIC -fno-strict-aliasing -fstack-protector-strong -fwrapv -fvisibility=hidden -Wno-array-bounds -pthread -pthread -I. -I.. -Isrc/csma/bindings -I../src/csma/bindings -I/usr/include/python2.7 -I/usr/include/x86_64-linux-gnu/python2.7 -I/usr/include/gtk-2.0 -I/usr/lib/x86_64-linux-gnu/gtk-2.0/include -I/usr/include/gio-unix-2.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/atk-1.0 -I/usr/include/pixman-1 -I/usr/include/libpng12 -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/harfbuzz -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include -I/usr/include/freetype2 -I/usr/include/libxml2 -DNS3_BUILD_PROFILE_DEBUG -DNS3_ASSERT_ENABLE -DNS3_LOG_ENABLE -DHAVE_SYS_IOCTL_H=1 -DHAVE_IF_NETS_H=1 -DHAVE_NET_ETHERNET_H=1 -DHAVE_PACKET_H=1 -DHAVE_IF_TUN_H=1 -DNS_DEPRECATED= -DNS3_DEPRECATED_H -DHAVE_PYEXT=1 -D_FORTIFY_SOURCE=2 -DNDEBUG -DHAVE_GSL=1 -DHAVE_SQLITE3=1 -DHAVE_GTK2=1 -DHAVE_LIBXML2=1 src/csma/bindings/ns3module.cc -c -o /home/hry-user/ns-allinone-3.26/ns-3.26/build/src/csma/bindings/ns3module.cc.5.o", 
+    "file": "src/csma/bindings/ns3module.cc"
   }, 
   {
     "directory": "/home/hry-user/ns-allinone-3.26/ns-3.26/build", 
