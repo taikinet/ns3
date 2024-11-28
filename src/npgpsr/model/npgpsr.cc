@@ -27,6 +27,8 @@
 #include <openssl/evp.h>
 #include <openssl/err.h>
 #include <openssl/sha.h>
+#include <thread> // std::this_thread::sleep_for
+#include <chrono> // std::chrono::seconds
 
 
 #define NPGPSR_LS_GOD 0
@@ -37,6 +39,16 @@ NS_LOG_COMPONENT_DEFINE ("NPGpsrRoutingProtocol");
 
 namespace ns3 {
 namespace npgpsr {
+
+// 初期化値を設定
+double RoutingProtocol::sumGeneIpSigTime = 0.0;
+double RoutingProtocol::sumGenePosSigTime = 0.0;
+int RoutingProtocol::cntGeneIpSig = 0;
+int RoutingProtocol::cntGenePosSig = 0;
+double RoutingProtocol::sumVeriIpSigTime = 0.0;
+double RoutingProtocol::sumVeriPosSigTime = 0.0;
+int RoutingProtocol::cntVeriIpSig = 0;
+int RoutingProtocol::cntVeriPosSig = 0;
 
 
 //DeferedRouteOutputTagクラスが最初に定義され、0に初期化されたm_isCallFromL3フラグを含む。
@@ -109,7 +121,7 @@ RoutingProtocol::RoutingProtocol ()
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
         PerimeterMode (false),
-        m_comment (true) // コメントの有無
+        m_comment (false) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
@@ -718,18 +730,65 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         EC_KEY* ecKey = GetDsaParameterIP();
         EC_KEY* ecKeypos = GetDsaParameterPOS();
 
-        //ハッシュ値
+        // 計測時間の測定値の宣言
+        std::string combined_position;
+        std::chrono::duration<double> durationIp;
+        std::chrono::duration<double> durationPos;
+
+        // ip時間計測開始
+        auto startIp = std::chrono::high_resolution_clock::now();
+        //ハッシュ値(IP)
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
-        // 位置情報のXとYを連結してハッシュに通す
-        std::string positionX_str = std::to_string(Position.x);
-        std::string positionY_str = std::to_string(Position.y);
-        std::string combined_position = positionX_str + positionY_str;
-        unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
 
+        //署名検証
+        if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1)//署名検証　成功時１
+        {
+                // 時間計測終了
+                auto endIp = std::chrono::high_resolution_clock::now();
+                durationIp = endIp - startIp;
+                sumVeriIpSigTime += durationIp.count() * 1000000;
+                cntVeriIpSig ++;
+
+                // pos時間計測開始
+                auto startPos = std::chrono::high_resolution_clock::now();
+                // 位置情報のXとYを連結してハッシュに通す
+                std::string positionX_str = std::to_string(Position.x);
+                std::string positionY_str = std::to_string(Position.y);
+                combined_position = positionX_str + positionY_str;
+                unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算(位置)
+                SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
+                if (ECDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), ecKeypos) == 1)
+                {
+                        if(m_comment){
+                                std::cerr << "ECDSA signature verification succeeded" << std::endl;
+                        }
+                        // pos時間計測終了
+                        auto endPos = std::chrono::high_resolution_clock::now();
+                        durationPos = endPos - startPos;
+                        sumVeriPosSigTime += durationPos.count() * 1000000;
+                        cntVeriPosSig ++;
+
+                        //近隣ノードの情報更新
+                        UpdateRouteToNeighbor (sender, receiver, Position);
+                }
+                else{
+                        if(m_comment){
+                                std::cerr << "ECDSA POS signature verification failed" << std::endl; 
+                        }   
+                }
+                
+        }
+        else
+        {
+                if(m_comment){
+                        std::cerr << "ECDSA IP signature verification failed" << std::endl;
+                }
+        }
         // 出力-----------------------------------------------------------------↓
         if(m_comment){
+                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
+                std::cout << "署名検証時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
                 std::cout << "VeriSig: "<< combined_position << std::endl;
                 const BIGNUM *r = nullptr;
                 const BIGNUM *s = nullptr;
@@ -753,25 +812,6 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
                 std::cout << std::endl;
         }
         // 出力-------------------------------------------------------------------↑
-
-        //署名検証
-        if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1)//署名検証　成功時１
-        {
-                if (ECDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), ecKeypos) == 1)
-                {
-                        std::cerr << "ECDSA signature verification succeeded" << std::endl;
-                        //近隣ノードの情報更新
-                        UpdateRouteToNeighbor (sender, receiver, Position);
-                }
-                else{
-                        std::cerr << "ECDSA POS signature verification failed" << std::endl;
-                }
-                
-        }
-        else
-        {
-                std::cerr << "ECDSA IP signature verification failed" << std::endl;
-        }
 
 
 
@@ -984,6 +1024,8 @@ RoutingProtocol::SendHello ()
 
         // nagano // -----------------------------------------------------------署名作成↓
         // ECDSA
+        // 時間計測開始
+        auto startIp = std::chrono::high_resolution_clock::now();
         //署名生成（IP)
         std::string protocolName = "NPGPSR";
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
@@ -993,7 +1035,16 @@ RoutingProtocol::SendHello ()
         {
         std::cerr << "Failed to generate ECDSA signature" << std::endl;
         }
-        //署名生成（位置)
+         // 時間計測終了
+        auto endIp = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationIp = endIp - startIp;
+        sumGeneIpSigTime += durationIp.count() * 1000000;
+        cntGeneIpSig ++;
+
+
+         // 時間計測開始
+        auto startPos = std::chrono::high_resolution_clock::now();
+        // 署名生成（位置)
         std::string positionX_str = std::to_string(positionX);
         std::string positionY_str = std::to_string(positionY);
         std::string combined_position = positionX_str + positionY_str;
@@ -1004,8 +1055,15 @@ RoutingProtocol::SendHello ()
         {
         std::cerr << "Failed to generate ECDSA signature" << std::endl;
         }
-
+        // 時間計測終了
+        auto endPos = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationPos = endPos - startPos;
+        sumGenePosSigTime += durationPos.count() * 1000000;
+        cntGenePosSig ++;
+        // 出力-----------------------------------------------------------------↓
         if(m_comment){
+                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
+                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
                 std::cout << "GeneSig: " << combined_position << std::endl;
                 const BIGNUM *r = nullptr;
                 const BIGNUM *s = nullptr;
@@ -1028,6 +1086,8 @@ RoutingProtocol::SendHello ()
                 }
                 std::cout << std::endl;
         }
+        // 出力-------------------------------------------------------------------↑
+        // nagano // -----------------------------------------------------------署名作成↑
 
         /*//IP詐称署名
         std::string IPliar = "not NGPSR";
