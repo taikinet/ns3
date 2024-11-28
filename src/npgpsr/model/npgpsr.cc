@@ -730,6 +730,11 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         EC_KEY* ecKey = GetDsaParameterIP();
         EC_KEY* ecKeypos = GetDsaParameterPOS();
 
+        // 計測時間の測定値の宣言
+        std::string combined_position;
+        std::chrono::duration<double> durationIp;
+        std::chrono::duration<double> durationPos;
+
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
         //ハッシュ値(IP)
@@ -741,7 +746,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         {
                 // 時間計測終了
                 auto endIp = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> durationIp = endIp - startIp;
+                durationIp = endIp - startIp;
                 sumVeriIpSigTime += durationIp.count() * 1000000;
                 cntVeriIpSig ++;
 
@@ -750,7 +755,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
                 // 位置情報のXとYを連結してハッシュに通す
                 std::string positionX_str = std::to_string(Position.x);
                 std::string positionY_str = std::to_string(Position.y);
-                std::string combined_position = positionX_str + positionY_str;
+                combined_position = positionX_str + positionY_str;
                 unsigned char digest1[SHA256_DIGEST_LENGTH];//ハッシュ値計算(位置)
                 SHA256(reinterpret_cast<const unsigned char*>(combined_position.c_str()), combined_position.length(), digest1);
                 if (ECDSA_do_verify(digest1, SHA256_DIGEST_LENGTH, hdr.GetSignaturePOS(), ecKeypos) == 1)
@@ -760,7 +765,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
                         }
                         // pos時間計測終了
                         auto endPos = std::chrono::high_resolution_clock::now();
-                        std::chrono::duration<double> durationPos = endPos - startPos;
+                        durationPos = endPos - startPos;
                         sumVeriPosSigTime += durationPos.count() * 1000000;
                         cntVeriPosSig ++;
 
@@ -782,7 +787,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         }
         // 出力-----------------------------------------------------------------↓
         if(m_comment){
-                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
+                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
                 std::cout << "署名検証時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
                 std::cout << "VeriSig: "<< combined_position << std::endl;
                 const BIGNUM *r = nullptr;
@@ -1057,8 +1062,8 @@ RoutingProtocol::SendHello ()
         cntGenePosSig ++;
         // 出力-----------------------------------------------------------------↓
         if(m_comment){
-                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
-                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μs" << std::endl;
+                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
+                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
                 std::cout << "GeneSig: " << combined_position << std::endl;
                 const BIGNUM *r = nullptr;
                 const BIGNUM *s = nullptr;

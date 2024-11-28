@@ -736,26 +736,46 @@ VanetRoutingExperiment::RunFlowMonitor()
     if(std::isnan(m_numHops))
       m_numHops=0.0;
 
-    m_geneIpSigTime = ns3::ndgpsr::RoutingProtocol::sumGeneIpSigTime;
-    m_genePosSigTime = ns3::ndgpsr::RoutingProtocol::sumGenePosSigTime;
-    m_geneSigTime = m_geneIpSigTime + m_genePosSigTime;
-    m_geneIpSigCnt = ns3::ndgpsr::RoutingProtocol::cntGeneIpSig;
-    m_genePosSigCnt = ns3::ndgpsr::RoutingProtocol::cntGenePosSig;
-    m_geneSigCnt = m_geneIpSigCnt + m_geneIpSigCnt;
-    m_veriIpSigTime = ns3::ndgpsr::RoutingProtocol::sumVeriIpSigTime;
-    m_veriPosSigTime = ns3::ndgpsr::RoutingProtocol::sumVeriPosSigTime;
-    m_veriSigTime = m_veriIpSigTime +  m_veriPosSigTime;
-    m_veriIpSigCnt = ns3::ndgpsr::RoutingProtocol::cntVeriIpSig;
-    m_veriPosSigCnt = ns3::ndgpsr::RoutingProtocol::cntVeriPosSig;
-    m_veriSigCnt = m_veriIpSigCnt + m_veriPosSigCnt;
+    if (m_protocolName == "NDGPSR"){
+      m_geneIpSigTime = ns3::ndgpsr::RoutingProtocol::sumGeneIpSigTime;
+      m_genePosSigTime = ns3::ndgpsr::RoutingProtocol::sumGenePosSigTime;
+      m_geneSigTime = m_geneIpSigTime + m_genePosSigTime;
+      m_geneIpSigCnt = ns3::ndgpsr::RoutingProtocol::cntGeneIpSig;
+      m_genePosSigCnt = ns3::ndgpsr::RoutingProtocol::cntGenePosSig;
+      m_geneSigCnt = m_geneIpSigCnt + m_geneIpSigCnt;
+      m_veriIpSigTime = ns3::ndgpsr::RoutingProtocol::sumVeriIpSigTime;
+      m_veriPosSigTime = ns3::ndgpsr::RoutingProtocol::sumVeriPosSigTime;
+      m_veriSigTime = m_veriIpSigTime +  m_veriPosSigTime;
+      m_veriIpSigCnt = ns3::ndgpsr::RoutingProtocol::cntVeriIpSig;
+      m_veriPosSigCnt = ns3::ndgpsr::RoutingProtocol::cntVeriPosSig;
+      m_veriSigCnt = m_veriIpSigCnt + m_veriPosSigCnt;
+    } 
+    else if(m_protocolName == "NPGPSR"){
+      m_geneIpSigTime = ns3::npgpsr::RoutingProtocol::sumGeneIpSigTime;
+      m_genePosSigTime = ns3::npgpsr::RoutingProtocol::sumGenePosSigTime;
+      m_geneSigTime = m_geneIpSigTime + m_genePosSigTime;
+      m_geneIpSigCnt = ns3::npgpsr::RoutingProtocol::cntGeneIpSig;
+      m_genePosSigCnt = ns3::npgpsr::RoutingProtocol::cntGenePosSig;
+      m_geneSigCnt = m_geneIpSigCnt + m_geneIpSigCnt;
+      m_veriIpSigTime = ns3::npgpsr::RoutingProtocol::sumVeriIpSigTime;
+      m_veriPosSigTime = ns3::npgpsr::RoutingProtocol::sumVeriPosSigTime;
+      m_veriSigTime = m_veriIpSigTime +  m_veriPosSigTime;
+      m_veriIpSigCnt = ns3::npgpsr::RoutingProtocol::cntVeriIpSig;
+      m_veriPosSigCnt = ns3::npgpsr::RoutingProtocol::cntVeriPosSig;
+      m_veriSigCnt = m_veriIpSigCnt + m_veriPosSigCnt;
+    }
+
+    
 
     std::cout<<"スループット(kbps)"<<m_throughput<<std::endl;
     std::cout<<"配送率"<<m_pdr<<std::endl;
     std::cout<<"オーバーヘッド割合"<<m_overHead<<std::endl;
     std::cout<<"オーバーヘッド"<<overhead<<std::endl;
     std::cout<<"平均遅延(ms)"<<m_delay<<std::endl;
-    std::cout<<"平均署名生成時間(μ s)"<<m_geneSigTime/m_geneSigCnt<<std::endl;
-    std::cout<<"平均署名検証時間(μ s)"<<m_veriSigTime/m_veriSigCnt<<std::endl;
+    if(m_protocolName == "NPGPSR" || "NDGPSR"){
+      std::cout<<"平均署名生成時間(μ s)"<<m_geneSigTime/m_geneSigCnt<<std::endl;
+      std::cout<<"平均署名検証時間(μ s)"<<m_veriSigTime/m_veriSigCnt<<std::endl;
+    }
     std::cout<<"パケットロス率"<<m_packetLoss<<std::endl;
     std::cout<<"平均ホップ数"<<m_numHops<<std::endl;
     std::cout<<"フロー数"<<countFlow<<std::endl;
@@ -767,10 +787,12 @@ VanetRoutingExperiment::RunFlowMonitor()
     std::cout<<"ホップ数合計:"<<sumTimesForwarded<<std::endl;
     std::cout<<"パケットロス合計"<<sumLostPackets<<std::endl;
     std::cout<<"遅延合計"<<sumDelay.GetSeconds()*1000<<"ms"<<std::endl;
-    std::cout<<"署名生成時間合計"<<m_geneSigTime<<"μ s"<<std::endl;
-    std::cout<<"署名生成回数合計"<<m_geneSigCnt<<"回"<<std::endl;
-    std::cout<<"署名検証時間合計"<<m_veriSigTime<<"μ s"<<std::endl;
-    std::cout<<"署名検証回数合計"<<m_veriSigCnt<<"回"<<std::endl;
+    if(m_protocolName == "NPGPSR" || "NDGPSR"){
+      std::cout<<"署名生成時間合計"<<m_geneSigTime<<"μ s"<<std::endl;
+      std::cout<<"署名生成回数合計"<<m_geneSigCnt<<"回"<<std::endl;
+      std::cout<<"署名検証時間合計"<<m_veriSigTime<<"μ s"<<std::endl;
+      std::cout<<"署名検証回数合計"<<m_veriSigCnt<<"回"<<std::endl;
+    }
     std::cout<<"送信パケット数合計"<<sumTxPackets<<std::endl;
     std::cout<<"受信パケット数合計"<<sumRxPackets<<std::endl;
     std::cout<<"送信オーバーヘッド合計"<<sumOverHead<<std::endl;

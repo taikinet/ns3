@@ -120,7 +120,7 @@ RoutingProtocol::RoutingProtocol ()
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
         PerimeterMode (false),
-        m_comment (false) // コメントの有無
+        m_comment (true) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
@@ -788,6 +788,8 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         // -------------------------------------------------------------↑
 
         //署名検証
+        std::chrono::duration<double> durationIp;
+        std::chrono::duration<double> durationPos;
 
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
@@ -799,8 +801,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         {
                 // 時間計測終了
                 auto endIp = std::chrono::high_resolution_clock::now();
-                std::chrono::duration<double> durationIp = endIp - startIp;
-                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
+                durationIp = endIp - startIp;
                 sumVeriIpSigTime += durationIp.count() * 1000000;
                 cntVeriIpSig ++;
                 // pos時間計測開始
@@ -821,8 +822,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                         }
                         // pos時間計測終了
                         auto endPos = std::chrono::high_resolution_clock::now();
-                        std::chrono::duration<double> durationPos = endPos - startPos;
-                        std::cout << "署名検証時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
+                        durationPos = endPos - startPos;
                         sumVeriPosSigTime += durationPos.count() * 1000000;
                         cntVeriPosSig ++;
                         //近隣ノードの情報更新
@@ -840,6 +840,10 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 if(m_comment){
                         std::cerr << "EdDSA ipsignature verification failed" << std::endl;
                 }     
+        }
+        if(m_comment){
+                std::cout << "署名検証時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
+                std::cout << "署名検証時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
         }
 
 
@@ -1162,8 +1166,8 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
 
         // 出力
         if(m_comment){
-                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μs" << std::endl;
-                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μs" << std::endl;
+                std::cout << "署名生成時間 (IP): " << durationIp.count() * 1000000 << " μ s" << std::endl;
+                std::cout << "署名生成時間 (位置): " << durationPos.count() * 1000000 << " μ s" << std::endl;
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
                 std::cout << "Node" << nodeId << ": success to create POS signature" << std::endl;
                 for (size_t i = 0; i < 64; i++) {
