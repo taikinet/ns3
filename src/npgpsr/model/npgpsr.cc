@@ -121,7 +121,7 @@ RoutingProtocol::RoutingProtocol ()
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
         PerimeterMode (false),
-        m_comment (true) // コメントの有無
+        m_comment (false) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
