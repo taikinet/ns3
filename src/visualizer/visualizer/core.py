@@ -767,10 +767,12 @@ class Visualizer(gobject.GObject):
 				
 				
 				#shinato
-                if nodeI == 3 or nodeI == 0:
-                   node_view.set_color("black")
+                if nodeI == 0:
+                    node_view.set_color("red")
+                elif nodeI == 1:
+                    node_view.set_color("blue")
                 else:
-				   node_view.set_color("red")
+				    node_view.set_color("black")
                 pos = mobility.GetPosition()
                 node_view.set_position(*transform_point_simulation_to_canvas(pos.x, pos.y))
                 #print "node has mobility position -> ", "%f,%f" % (pos.x, pos.y)
@@ -976,7 +978,7 @@ class Visualizer(gobject.GObject):
             
             #shinato
             #line_width = max(0.1,math.log(float(rx_bytes)/rx_count/self.sample_period)*k)
-            if 15>math.log(float(rx_bytes)/rx_count/self.sample_period)*k:
+            if 16>math.log(float(rx_bytes)/rx_count/self.sample_period)*k:
                 line_width = 5
                 stroke_color_rgba=0x0000C0C0
             else:
