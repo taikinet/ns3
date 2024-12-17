@@ -1209,22 +1209,42 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         //shinato
 
         /*//IP詐称署名
-        std::string IPliar = "not NGPSR";
+        std::string IPliar = "not NDGPSR";
         unsigned char digest_IPliar[SHA256_DIGEST_LENGTH];//SHA256_DIGEST_LENGTHはSHA-256ハッシュのバイト長を表す定数
         SHA256(reinterpret_cast<const unsigned char*>(IPliar.c_str()), IPliar.length(), digest_IPliar);//与えられたデータ（メッセージ）のハッシュ値を計算
-        ECDSA_SIG* signature_IPliar = ECDSA_do_sign(digest_IPliar, SHA256_DIGEST_LENGTH, GetDsaParameterIP());//署名生成
+        unsigned char *signature_IPliar = nullptr; 
+        signature_IPliar = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
+        if (signature_IPliar == nullptr) {
+        EVP_MD_CTX_free(md_ctx_ip);
+        return;
+        }
+        // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
+        if (EVP_DigestSign(md_ctx_ip, signature_IPliar, &sig_len, digest_IPliar, SHA256_DIGEST_LENGTH) <= 0) {
+        EVP_MD_CTX_free(md_ctx_ip);
+        return;
+        }
         //位置詐称署名
         std::string POSliar = "wrong pos";
         unsigned char digest_POSliar[SHA256_DIGEST_LENGTH];//SHA256_DIGEST_LENGTHはSHA-256ハッシュのバイト長を表す定数
         SHA256(reinterpret_cast<const unsigned char*>(POSliar.c_str()), POSliar.length(), digest_POSliar);//与えられたデータ（メッセージ）のハッシュ値を計
-        ECDSA_SIG* signature_POSliar = ECDSA_do_sign(digest_POSliar, SHA256_DIGEST_LENGTH, GetDsaParameterPOS());//署名生成*/
+        unsigned char *signature_POSliar = nullptr; 
+        signature_POSliar = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
+        if (signature_POSliar == nullptr) {
+        EVP_MD_CTX_free(md_ctx_ip);
+        return;
+        }
+        // 署名を作成 (初期化されたコンテキストにデータを追加し、署名を生成)
+        if (EVP_DigestSign(md_ctx_ip, signature_POSliar, &sig_len, digest_POSliar, SHA256_DIGEST_LENGTH) <= 0) {
+        EVP_MD_CTX_free(md_ctx_ip);
+        return;
+        } */
 
 
 	for (std::map<Ptr<Socket>, Ipv4InterfaceAddress>::const_iterator j = m_socketAddresses.begin (); j != m_socketAddresses.end (); ++j)
 	{
                 Ptr<Socket> socket = j->first;
                 Ipv4InterfaceAddress iface = j->second;
-
+                // shinato
                 /*if(nodeId == 20 || nodeId == 25){
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
