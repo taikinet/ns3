@@ -74,7 +74,7 @@ public:
   virtual void SetIpv4 (Ptr<Ipv4> ipv4);
   virtual void RecvNDGPSR (Ptr<Socket> socket);
   virtual void UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver, Vector Pos);
-  virtual void SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos);
+  virtual void SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::chrono::duration<double> durationIp_cxt, std::chrono::duration<double> durationPos_cxt);
   virtual bool IsMyOwnAddress (Ipv4Address src);
 
   void SetDsaParameterIP(EVP_PKEY* parameter)
