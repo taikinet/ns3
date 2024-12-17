@@ -49,8 +49,8 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 				m_table.erase (id);
 				
 				Metrix metrix;
-				//position.x=765;//宛先ノード近い
-				position.y=700;
+				position.x=1550;//宛先ノード近い
+				position.y=800;
 				metrix.position=position;
 				metrix.time=Simulator::Now ();
 				m_table.insert (std::make_pair (id, metrix));
@@ -58,7 +58,8 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 			}
 			//IDがテーブルにないとき、IDを追加
 			Metrix metrix;
-			position.x=700;//宛先ノード近い
+			position.x=1550;//宛先ノード近い
+			position.y=800;
 			
 			metrix.position=position;
 			metrix.time=Simulator::Now ();
@@ -72,7 +73,7 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 				m_table.erase (id);
 				
 				Metrix metrix;
-				position.x=1790;//宛先ノード近い
+				position.x=1500;//宛先ノード近い
 				position.y=790;
 				metrix.position=position;
 				metrix.time=Simulator::Now ();
@@ -81,7 +82,7 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 			}
 			//IDがテーブルにないとき、IDを追加
 			Metrix metrix;
-			position.x=1790;//宛先ノード近い
+			position.x=1500;//宛先ノード近い
 			position.y=790;
 			metrix.position=position;
 			metrix.time=Simulator::Now ();
