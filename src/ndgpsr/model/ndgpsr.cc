@@ -857,7 +857,7 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 {
 	uint32_t flag = 0;
 	
-	/*if(sender==("192.168.1.24"))//位置情報を変えるノード(192.168.1.nodeId+1)
+	if(sender==("192.168.1.24"))//位置情報を変えるノード(192.168.1.nodeId+1)
 	{
 		flag = 1;
 	}
@@ -867,7 +867,7 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 	}
 	else{
 		flag = 0;
-	}*/
+	}
 	m_neighbors.AddEntry (sender, Pos, flag);
         
 }
@@ -1153,8 +1153,6 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         //         }
         //         std::cout << std::endl;
         // }
-        // メモリの解放
-        EVP_MD_CTX_free(md_ctx_ip);
 
 
         // 署名作成（位置）
@@ -1199,16 +1197,15 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                 }
                 std::cout << std::endl;
         }
-        // メモリの解放
-        EVP_MD_CTX_free(md_ctx_pos);
 
         // nagano--------------------------------------------------------------------------------↑
 
-        //uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
 
         //shinato
 
-        /*//IP詐称署名
+        uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
+
+        //IP詐称署名
         std::string IPliar = "not NDGPSR";
         unsigned char digest_IPliar[SHA256_DIGEST_LENGTH];//SHA256_DIGEST_LENGTHはSHA-256ハッシュのバイト長を表す定数
         SHA256(reinterpret_cast<const unsigned char*>(IPliar.c_str()), IPliar.length(), digest_IPliar);//与えられたデータ（メッセージ）のハッシュ値を計算
@@ -1237,7 +1234,11 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         if (EVP_DigestSign(md_ctx_ip, signature_POSliar, &sig_len, digest_POSliar, SHA256_DIGEST_LENGTH) <= 0) {
         EVP_MD_CTX_free(md_ctx_ip);
         return;
-        } */
+        }
+
+        // メモリの解放
+        EVP_MD_CTX_free(md_ctx_ip);
+        EVP_MD_CTX_free(md_ctx_pos);
 
 
 	for (std::map<Ptr<Socket>, Ipv4InterfaceAddress>::const_iterator j = m_socketAddresses.begin (); j != m_socketAddresses.end (); ++j)
@@ -1245,7 +1246,8 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                 Ptr<Socket> socket = j->first;
                 Ipv4InterfaceAddress iface = j->second;
                 // shinato
-                /*if(nodeId == 20 || nodeId == 25){
+                // 署名が正しくない
+                if(nodeId == 20 || nodeId == 25){ 
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
@@ -1285,7 +1287,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                         }
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
                 }
-                else{*/
+                else{
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
 
                         Ptr<Packet> packet = Create<Packet> ();
@@ -1305,7 +1307,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                                 NS_LOG_DEBUG("Send hello to destination"<<destination );
                         }
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
-                //}
+                }
         }
 
 		
