@@ -1034,6 +1034,10 @@ RoutingProtocol::HelloTimerExpire ()
         EVP_PKEY* edKey_pos = GetDsaParameterPOS();
         // 署名のコンテキスト作成と初期化(IP)
         // 署名のコンテキストを作成
+
+        // 時間測定開始
+        auto startIp = std::chrono::high_resolution_clock::now();
+
         EVP_MD_CTX *md_ctx_ip = EVP_MD_CTX_new();
         if (!md_ctx_ip) {
         std::cerr << "Failed to create MD context" << std::endl;
@@ -1045,7 +1049,14 @@ RoutingProtocol::HelloTimerExpire ()
         EVP_MD_CTX_free(md_ctx_ip);
         return;
         }
-        // 署名のコンテキスト作成と初期化(IP)
+        // 時間測定終了(IP)
+        auto endIp = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationIp_cxt = endIp - startIp;
+
+        // 時間測定開始(POS)
+        auto startPos = std::chrono::high_resolution_clock::now();
+
+        // 署名のコンテキスト作成と初期化(POS)
         EVP_MD_CTX *md_ctx_pos = EVP_MD_CTX_new();
         if (!md_ctx_pos) {
         std::cerr << "Failed to create MD context" << std::endl;
@@ -1058,9 +1069,12 @@ RoutingProtocol::HelloTimerExpire ()
         EVP_MD_CTX_free(md_ctx_pos);
         return;
         }
+        // 時間測定終了(POS)
+        auto endPos = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double> durationPos_cxt = endPos - startPos;
 
 
-        SendHello (md_ctx_ip, md_ctx_pos);
+        SendHello (md_ctx_ip, md_ctx_pos, durationIp, durationIp_cxt, durationPos_cxt);
         HelloIntervalTimer.Cancel ();
         //HelloInterval + JITTERの遅延時間を持つ新しいタイマーを作成
         HelloIntervalTimer.Schedule (HelloInterval + JITTER);
@@ -1069,7 +1083,7 @@ RoutingProtocol::HelloTimerExpire ()
 
 //Hello Packetsの送信
 void
-RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
+RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::chrono::duration<double> durationIp_cxt, std::chrono::duration<double> durationPos_cxt)
 
 {
         NS_LOG_FUNCTION (this);
@@ -1086,6 +1100,10 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
         if(m_comment){
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
                 std::cout << "Node" << nodeId << ": GeneSig : postionX is: " << positionX << std::endl;
+        }
+
+        if(m_comment){
+                std::cout << "IP署名コンテキスト生成時間" << durationIp_cxt.count() * 1000000 << "μ s" << std::endl;
         }
 
         // -----------------------------------------------------------署名作成↓
@@ -1117,7 +1135,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
 
         // 時間計測終了
         auto endIp = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> durationIp = endIp - startIp;
+        std::chrono::duration<double> durationIp = endIp - startIp + durationIp_cxt;
         sumGeneIpSigTime += durationIp.count() * 1000000;
         cntGeneIpSig ++;
 
@@ -1160,7 +1178,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos)
 
         // 時間計測終了
         auto endPos = std::chrono::high_resolution_clock::now();
-        std::chrono::duration<double> durationPos = endPos - startPos;
+        std::chrono::duration<double> durationPos = endPos - startPos + durationPos_cxt;
         sumGenePosSigTime += durationPos.count() * 1000000;
         cntGenePosSig ++;
 
