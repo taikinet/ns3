@@ -120,7 +120,7 @@ RoutingProtocol::RoutingProtocol ()
         m_queue (MaxQueueLen, MaxQueueTime),
         HelloIntervalTimer (Timer::CANCEL_ON_DESTROY),
         PerimeterMode (false),
-        m_comment (false) // コメントの有無
+        m_comment (true) // コメントの有無
 {
         m_neighbors = PositionTable ();
 }
@@ -1074,7 +1074,7 @@ RoutingProtocol::HelloTimerExpire ()
         std::chrono::duration<double> durationPos_cxt = endPos - startPos;
 
 
-        SendHello (md_ctx_ip, md_ctx_pos, durationIp, durationIp_cxt, durationPos_cxt);
+        SendHello (md_ctx_ip, md_ctx_pos, durationIp_cxt, durationPos_cxt);
         HelloIntervalTimer.Cancel ();
         //HelloInterval + JITTERの遅延時間を持つ新しいタイマーを作成
         HelloIntervalTimer.Schedule (HelloInterval + JITTER);

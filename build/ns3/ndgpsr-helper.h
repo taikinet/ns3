@@ -66,7 +66,7 @@ public:
    */
   void Set (std::string name, const AttributeValue &value);
 
-  //shinato
+  //shinato nagano
   //IP
   void SetDsaParameterIP(EVP_PKEY* parameter);
   EVP_PKEY* GetDsaParameterIP() const;
