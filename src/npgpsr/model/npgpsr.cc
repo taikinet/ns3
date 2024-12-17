@@ -1089,8 +1089,9 @@ RoutingProtocol::SendHello ()
         // 出力-------------------------------------------------------------------↑
         // nagano // -----------------------------------------------------------署名作成↑
 
+        //shinato
         /*//IP詐称署名
-        std::string IPliar = "not NGPSR";
+        std::string IPliar = "not NPGPSR";
         unsigned char digest_IPliar[SHA256_DIGEST_LENGTH];//SHA256_DIGEST_LENGTHはSHA-256ハッシュのバイト長を表す定数
         SHA256(reinterpret_cast<const unsigned char*>(IPliar.c_str()), IPliar.length(), digest_IPliar);//与えられたデータ（メッセージ）のハッシュ値を計算
         ECDSA_SIG* signature_IPliar = ECDSA_do_sign(digest_IPliar, SHA256_DIGEST_LENGTH, GetDsaParameterIP());//署名生成
@@ -1106,6 +1107,7 @@ RoutingProtocol::SendHello ()
                 Ptr<Socket> socket = j->first;
                 Ipv4InterfaceAddress iface = j->second;
 
+                // shinato
                 /*if(nodeId == 20 || nodeId == 25){
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();

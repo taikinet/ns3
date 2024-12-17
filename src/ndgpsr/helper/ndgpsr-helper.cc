@@ -52,7 +52,7 @@ NDGpsrHelper::Create (Ptr<Node> node) const
   //ndgpsr->SetDownTarget (ipv4l4->GetDownTarget ());
   //ipv4l4->SetDownTarget (MakeCallback (&ndgpsr::RoutingProtocol::AddHeaders, ndgpsr));
   node->AggregateObject (ndgpsr);
-  //shinato
+  //shinato nagano
   ndgpsr->SetDsaParameterIP(m_dsaParameter); // m_dsaParameterの設定
   ndgpsr->SetDsaSignatureIP(m_dsaSignatureIP);
   ndgpsr->SetDsaParameterPOS(m_dsaposParameter); // m_dsaParameterの設定
@@ -67,7 +67,7 @@ NDGpsrHelper::Set (std::string name, const AttributeValue &value)
   m_agentFactory.Set (name, value);
 }
 
-//shinato
+//shinato nagano
 void NDGpsrHelper::SetDsaParameterIP(EVP_PKEY* parameter) {
     m_dsaParameter = parameter;
 }
