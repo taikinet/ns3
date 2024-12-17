@@ -779,9 +779,9 @@ class Visualizer(gobject.GObject):
                     node_view.set_color("purple")
                 elif nodeI == 29: # 位置情報詐称
                     node_view.set_color("purple")
-                elif nodeI == 200: # 転送しない
+                elif nodeI == 80: # 転送しない
                     node_view.set_color("magenta")
-                elif nodeI == 250: # 転送しない
+                elif nodeI == 100: # 転送しない
                     node_view.set_color("magenta")
                 else:
 				    node_view.set_color("black")
