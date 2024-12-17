@@ -1313,7 +1313,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 {
         //shinato 転送しない悪意ノード
 	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 200||not_foward ==250)
+        if(not_foward == 80||not_foward ==100)
 	{	
 		return true;
 	}

@@ -129,7 +129,7 @@ RoutingHelper::ConvertToHex(const unsigned char* data, size_t length){ //バイ�
 
 RoutingHelper::RoutingHelper () // コンストラクタ
   : m_comment (false), // コメントの有無
-    m_totalSimTime (100),//シュミレーション時間
+    m_totalSimTime (50),//シュミレーション時間
     m_port (9)
 {
     //送受信ノード選択
@@ -470,7 +470,7 @@ private:
 VanetRoutingExperiment::VanetRoutingExperiment ()//コンストラクターパラメータの初期化
 : m_comment (false), // コメントの有無
 m_port (9),//ポート番号
-m_nNodes (20),//ノード数
+m_nNodes (30),//ノード数
 m_protocolName ("NPGPSR"),//プロトコル名
 m_txp (17.026),//送信電力(dB)
 m_EDT (-96),
@@ -478,7 +478,7 @@ m_lossModelName ("ns3::LogDistancePropagationLossModel"),//電波伝搬損失モ
 m_rate ("8192bps"),//レート(bps)
 m_phyMode ("OfdmRate24MbpsBW10MHz"),//wifiの物理層のモード 変調方式ofdm,レート6Mbps,帯域幅10MHz
 m_packetSize("1024"),
-m_totalSimTime (100.0),// シミュレーション時間
+m_totalSimTime (50.0),// シミュレーション時間
 m_fileName("/home/hry-user/dataTemp/data.txt"),
 m_adhocTxNodes (),//アホック送信ノード
 m_pdr (0),
@@ -813,6 +813,10 @@ VanetRoutingExperiment::ProcessOutputs ()
     out<<m_numHops<<std::endl;
     out<<m_simlationTime<<std::endl;
     out<<memory_usage_kb<<std::endl;
+    if(m_protocolName == "NPGPSR" || "NDGPSR"){
+      out<<m_geneSigTime/m_geneSigCnt<<std::endl;
+      out<<m_veriSigTime/m_veriSigCnt<<std::endl;
+    }
 
     out.close();
 }
