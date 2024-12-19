@@ -767,22 +767,18 @@ class Visualizer(gobject.GObject):
 				
 				
 				#shinato
-                if nodeI == 0: # 送信ノード
+                if nodeI == 6: # 送信ノード
                     node_view.set_color("red")
-                elif nodeI == 1: # 受信ノード
-                    node_view.set_color("blue")
-                elif nodeI == 20: # 署名が正しくない
-                    node_view.set_color("green")
-                elif nodeI == 25: # 署名が正しくない
-                    node_view.set_color("green")
-                elif nodeI == 24: # 位置情報詐称
-                    node_view.set_color("purple")
-                elif nodeI == 29: # 位置情報詐称
-                    node_view.set_color("purple")
-                elif nodeI == 80: # 転送しない
+                elif nodeI == 9: # 受信ノード
                     node_view.set_color("magenta")
-                elif nodeI == 100: # 転送しない
-                    node_view.set_color("magenta")
+                elif nodeI == 10: # 署名が正しくない
+                    node_view.set_color("green")
+                elif nodeI == 26: # 署名が正しくない
+                    node_view.set_color("green")
+                elif nodeI == 7: # 位置情報詐称
+                    node_view.set_color("purple")
+                elif nodeI == 30: # 位置情報詐称
+                    node_view.set_color("purple")
                 else:
 				    node_view.set_color("black")
                 pos = mobility.GetPosition()

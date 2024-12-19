@@ -133,8 +133,8 @@ RoutingHelper::RoutingHelper () // コンストラクタ
     m_port (9)
 {
     //送受信ノード選択
-    m_sourceNode=0;
-    m_sinkNode=1;
+    m_sourceNode=6;
+    m_sinkNode=9;
 
 }
 
@@ -505,8 +505,8 @@ memory_usage_kb(0),
 m_traceFile("/home/hry-user/ns-allinone-3.26/ns-3.26/node/mobility_tokai.tcl")  //nodeの動きを決めるファイル
 {
 	//送受信ノードを選択
-    m_sourceNode=0;
-    m_sinkNode=1;
+    m_sourceNode=6;
+    m_sinkNode=9;
     m_wifiPhyStats = CreateObject<WifiPhyStats> ();
     m_routingHelper= CreateObject<RoutingHelper> ();
 }
@@ -540,6 +540,7 @@ VanetRoutingExperiment::ParseCommandLineArguments (int argc, char **argv)
     cmd.AddValue ("protocolName", "name of protocol", m_protocolName);
     cmd.AddValue ("simTime", "total simulation time", m_totalSimTime);
     cmd.AddValue ("nodeCount", "total node Count", m_nNodes);
+    cmd.AddValue ("traceFile", "name of tranceFile", m_traceFile);
     cmd.Parse (argc, argv);
     //プログラムの引数を解析する。argc:引数の数(最初の要素としてメインプログラムの名前を含む),argv:nullで終わる文字列の配列,それぞれがコマンドライン引数を識別する
 
