@@ -5,42 +5,64 @@ TOKEN="uSmbrMW1BuCGlvovL2GlDPXbIoYqvOuMLVFRPcoUkUn"
 rm -rf ~/dataTemp
 rm -rf ~/Simulation/* #dataファイルの下を削除する
 
+
+# ラインに送信
+send_line_notification1() { 
+	message="シミュレーション開始！\n↓--------------------------↓"
+	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+send_line_notification2() { 
+	protocol=$1
+	message="$protocol シミュレーション $i 回目終了"
+	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+send_line_notification3() { 
+	traceFile=$1
+	message="$traceFile :  終了"
+	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+
+send_line_notification4() {
+	message="シミュレーションが終了しました。"
+	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+
 start_time=`date +%s` 
 
 i=1 #loop
-r=2 #実験回数
-for traceFile in mobility37.tcl mobility112.tcl mobility185.tcl
+r=20 #実験回数   # ここいじる
+send_line_notification1
+for traceFile in mobility37.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile = "mobility37.tcl" ]; then
-		nodeCout=37
-		simulationTime=360
+		nodeCount=37
+		simulationTime=60     ### ここいじる
 	elif [ $traceFile = "mobility112.tcl" ]; then
-		nodeCout=112
-		simulationTime=360
+		nodeCount=112
+		simulationTime=60
 	elif [ $traceFile = "mobility185.tcl" ]; then
-		nodeCout=185
-		simulationTime=360
+		nodeCount=185
+		simulationTime=60
+	elif [$traceFile = "mobility_tokai.tcl"]; then
+		nodeCount=40
+		simlationTime=60
 	fi
 	for protocol in GPSR NGPSR NPGPSR NDGPSR
 	do
-		mkdir ~/"Simulation/$traceFile/$protocol"
+		mkdir -p ~/"Simulation/$traceFile/$protocol"
 		mkdir -p ~/"dataTemp"
 		while [ $i -le $r ]; do
 		
 		echo "-run $i  --RoutingProtocol=$protocol "
-		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=$traceFile --nodeCount=$nodeCout --simulationTime=$simulationTime" 
+		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=/home/hry-user/ns-allinone-3.26/ns-3.26/node/$traceFile --nodeCount=$nodeCount --simTime=$simulationTime" 
 		
 		mv ~/dataTemp/data.txt ~/dataTemp/data$i.txt
 		mv ~/dataTemp/data$i.txt ~/Simulation/$traceFile/$protocol
 
-		# ラインに送信
-		send_line_notification1() { 
-			message="$protocol シミュレーション $i 回目終了"
-			curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
-		}	
-		send_line_notification1
+		# ラインに送信	
+		send_line_notification2 "$protocol"
 
-		i=`expr $i + 1`
+		i=$((i + 1))
 		
 		done
 		
@@ -48,12 +70,8 @@ do
 		rm -rf ~/dataTemp
 
 	done
-	# ラインに送信
-	send_line_notification3() { 
-		message="$tranceFile :  終了"
-		curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
-	}	
-	send_line_notification3
+		
+	send_line_notification3 "$traceFile"
 
 done
 
@@ -69,10 +87,6 @@ SS=`expr ${SS} % 60` #秒を計算
 
 echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーションにかかった時間を　時:分:秒で表示する
 
-send_line_notification2() {
-	message="シミュレーションが終了しました。"
-	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
-}
 
 # LINE通知を送信
-send_line_notification2
+send_line_notification4

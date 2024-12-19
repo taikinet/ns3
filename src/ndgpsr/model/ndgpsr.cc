@@ -857,11 +857,11 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 {
 	uint32_t flag = 0;
 	
-	if(sender==("192.168.1.24"))//位置情報を変えるノード(192.168.1.nodeId+1)
+	if(sender==("192.168.1.7"))//位置情報を変えるノード(192.168.1.nodeId+1)
 	{
 		flag = 1;
 	}
-	else if(sender==("192.168.1.29"))
+	else if(sender==("192.168.1.30"))
 	{
 		flag = 2;
 	}
@@ -1116,7 +1116,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         auto startIp = std::chrono::high_resolution_clock::now();
 
         // 署名生成（IP）
-        std::string protocolName = "NDGPSR";
+        std::string protocolName = "NDGPSR"; // IPアドレス代わり
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
         SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
 
@@ -1246,8 +1246,8 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                 Ptr<Socket> socket = j->first;
                 Ipv4InterfaceAddress iface = j->second;
                 // shinato
-                // 署名が正しくない
-                if(nodeId == 20 || nodeId == 25){ 
+                // IP署名が正しくない(IP詐称)
+                if(nodeId == 10 || nodeId == 26){ 
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
@@ -1450,13 +1450,13 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
                              UnicastForwardCallback ucb, ErrorCallback ecb)
 {
         //shinato 転送しない悪意ノード
-	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 80||not_foward ==100)
-	{	
-		return true;
-	}
-	else
-	{        
+	// int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
+        // if(not_foward == 80||not_foward ==100)
+	// {	
+	// 	return true;
+	// }
+	// else
+	// {        
 
 		Ptr<Packet> p = packet->Copy ();
 		NS_LOG_FUNCTION (this);
@@ -1574,7 +1574,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 
 		NS_LOG_LOGIC ("Entering recovery-mode to " << dst << " in " << m_ipv4->GetAddress (1, 0).GetLocal ());
 		return true;
-        }
+        // }
 		
 }
 

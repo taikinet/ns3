@@ -54,7 +54,7 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 				metrix.position=position;
 				metrix.time=Simulator::Now ();
 				m_table.insert (std::make_pair (id, metrix));
-				return; //返さないとと後の処理ができない
+				return; //返さないと後の処理ができない
 			}
 			//IDがテーブルにないとき、IDを追加
 			Metrix metrix;
