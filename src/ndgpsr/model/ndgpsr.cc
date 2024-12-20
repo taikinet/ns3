@@ -1448,13 +1448,13 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
                              UnicastForwardCallback ucb, ErrorCallback ecb)
 {
         //shinato 転送しない悪意ノード
-	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 200||not_foward ==250)
-	{	
-		return true;
-	}
-	else
-	{        
+	// int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
+        // if(not_foward == 200||not_foward ==250)
+	// {	
+	// 	return true;
+	// }
+	// else
+	// {        
 
 		Ptr<Packet> p = packet->Copy ();
 		NS_LOG_FUNCTION (this);
@@ -1572,7 +1572,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 
 		NS_LOG_LOGIC ("Entering recovery-mode to " << dst << " in " << m_ipv4->GetAddress (1, 0).GetLocal ());
 		return true;
-        }
+        // }
 		
 }
 
