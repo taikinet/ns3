@@ -770,7 +770,7 @@ class Visualizer(gobject.GObject):
                 if nodeI == 0:
                     node_view.set_color("red")
                 elif nodeI == 1:
-                    node_view.set_color("blue")
+                    node_view.set_color("magenta")
                 else:
 				    node_view.set_color("black")
                 pos = mobility.GetPosition()
