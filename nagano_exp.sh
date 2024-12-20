@@ -8,7 +8,7 @@ rm -rf ~/Simulation/* #dataファイルの下を削除する
 
 # ラインに送信
 send_line_notification1() { 
-	message="シミュレーション開始！\n↓--------------------------↓"
+	message="シミュレーション開始！  ↓--------------------------↓"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
 send_line_notification2() { 
@@ -18,58 +18,63 @@ send_line_notification2() {
 }
 send_line_notification3() { 
 	traceFile=$1
-	message="$traceFile :  終了"
+    nodeCount=$2
+    simulationTime=$3
+	message="$traceFile,  ノード数：${nodeCount},  simTime : ${simulationTime}   終了"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
 
 send_line_notification4() {
-	message="シミュレーションが終了しました。"
+    HH=$HH
+    MM=$MM
+    SS=$SS
+	message="シミュレーションが終了しました。  シュミレーション時間${HH}:${MM}:${SS}"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
+
+send_line_notification5() {
+    traceFile=$1
+    file_path="/home/hry-user/Simulation/$traceFile/avarage.txt"
+    if [ -f "$file_path" ]; then
+        message=$(<"$file_path")
+    fi
+    curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+
 
 start_time=`date +%s` 
 
 i=1 #loop
-r=5 #実験回数   # ここいじる
+r=250 #実験回数   # ここいじる
+nodeCount=0
+simlationTime=0
 send_line_notification1
-for traceFile in mobility37 mobility_tokai mobility74_112 mobility112 mobility37_185 mobility74_185 mobility112_185 mobility150_185 mobility185   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
-	if [ $traceFile = "mobility37" ]; then
-        fileName=mobility37.tcl
+	if [ $traceFile == "mobility112.tcl" ]; then
+        fileName="mobility112.tcl"
+		nodeCount=74  
+		simulationTime=100 ### ここいじる
+	elif [ $traceFile == "mobility37_185.tcl" ]; then
+        fileName="mobility185.tcl"
 		nodeCount=37
-		simulationTime=250     ### ここいじる
-    elif [ $traceFile = "mobility_tokai" ]; then
-        fileName=mobility_tokai.tcl
-        nodeCount=37
-        simulationTime=250
-    elif [ $traceFile = "mobility74_112" ]; then
-        fileName=mobility112.tcl
-        nodeCount=74
-        simulationTime=250
-	elif [ $traceFile = "mobility112" ]; then
-        fileName=mobility112.tcl
-		nodeCount=112
-		simulationTime=250
-	elif [ $traceFile = "mobility37_185" ]; then
-        fileName=mobility185.tcl
-		nodeCount=37
-		simulationTime=250
-    elif [ $traceFile = "mobility74_185" ]; then
-        fileName=mobility185.tcl
+		simulationTime=100
+    elif [ $traceFile == "mobility74_185.tcl" ]; then
+        fileName="mobility185.tcl"
 		nodeCount=74
-		simulationTime=250
-    elif [ $traceFile = "mobility112_185" ]; then
-        fileName=mobility185.tcl
+		simulationTime=100
+    elif [ $traceFile == "mobility112_185.tcl" ]; then
+        fileName="mobility185.tcl"
 		nodeCount=112
-		simulationTime=250
-    elif [ $traceFile = "mobility150_185" ]; then
-        fileName=mobility185.tcl
+		simulationTime=100
+    elif [ $traceFile == "mobility150_185.tcl" ]; then
+        fileName="mobility185.tcl"
 		nodeCount=150
-		simulationTime=250
-	elif [$traceFile = "mobility185"]; then
-        fileName=mobility185.tcl
+		simulationTime=100
+    elif [ $traceFile == "mobility185.tcl" ]; then
+        fileName="mobility185.tcl"
 		nodeCount=185
-		simlationTime=250
+		simulationTime=100
 	fi
 	for protocol in GPSR NGPSR NPGPSR NDGPSR
 	do
@@ -95,7 +100,7 @@ do
 
 	done
 		
-	send_line_notification3 "$traceFile"
+	send_line_notification3 "$traceFile" $nodeCount $simulationTime
 
 done
 
@@ -113,4 +118,9 @@ echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーション
 
 
 # LINE通知を送信
-send_line_notification4
+send_line_notification4 $HH $MM $SS
+
+for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl # ここいじる
+do
+    send_line_notification5 $traceFile
+done
