@@ -133,8 +133,8 @@ RoutingHelper::RoutingHelper () // コンストラクタ
     m_port (9)
 {
     //送受信ノード選択
-    m_sourceNode=6;
-    m_sinkNode=9;
+    m_sourceNode=0;
+    m_sinkNode=1;
 
 }
 
@@ -505,8 +505,8 @@ memory_usage_kb(0),
 m_traceFile("/home/hry-user/ns-allinone-3.26/ns-3.26/node/mobility_tokai.tcl")  //nodeの動きを決めるファイル
 {
 	//送受信ノードを選択
-    m_sourceNode=6;
-    m_sinkNode=9;
+    m_sourceNode=0;
+    m_sinkNode=1;
     m_wifiPhyStats = CreateObject<WifiPhyStats> ();
     m_routingHelper= CreateObject<RoutingHelper> ();
 }

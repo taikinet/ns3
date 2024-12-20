@@ -39,7 +39,7 @@ int makeFile(int t){
     char PGPSR_0[128];
     char DGPSR_0[128];
 	
-	std::vector<std::string> traceFiles = {"mobility37.tcl"}; //{"mobility37.tcl", "mobility112", "mobility185"};   // ここいじる
+	std::vector<std::string> traceFiles = {"mobility112"}; //{"mobility37.tcl", "mobility112", "mobility185"};   // ここいじる
     for (const std::string& traceFile : traceFiles) {
     
         
@@ -148,6 +148,9 @@ int makeFile(int t){
 	return 0;
 }
 
+void processFile() {
+    
+}
 
 int main(int argc, char *argv[]){
 

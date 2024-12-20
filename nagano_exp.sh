@@ -30,22 +30,22 @@ send_line_notification4() {
 start_time=`date +%s` 
 
 i=1 #loop
-r=20 #実験回数   # ここいじる
+r=2 #実験回数   # ここいじる
 send_line_notification1
-for traceFile in mobility37.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+for traceFile in mobility112.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
-	if [ $traceFile = "mobility37.tcl" ]; then
-		nodeCount=37
-		simulationTime=60     ### ここいじる
-	elif [ $traceFile = "mobility112.tcl" ]; then
-		nodeCount=112
-		simulationTime=60
-	elif [ $traceFile = "mobility185.tcl" ]; then
-		nodeCount=185
-		simulationTime=60
-	elif [$traceFile = "mobility_tokai.tcl"]; then
-		nodeCount=40
-		simlationTime=60
+	if [ $traceFile = "mobility112.tcl" ]; then
+		nodeCount=74  
+		simulationTime=50 ### ここいじる
+    # else [ $traceFile = "mobility37.tcl" ]; then
+	# 	nodeCount=37
+	# 	simulationTime=60    
+	# elif [ $traceFile = "mobility185.tcl" ]; then
+	# 	nodeCount=185
+	# 	simulationTime=60
+	# elif [$traceFile = "mobility_tokai.tcl"]; then
+	# 	nodeCount=40
+	# 	simlationTime=60
 	fi
 	for protocol in GPSR NGPSR NPGPSR NDGPSR
 	do

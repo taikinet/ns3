@@ -767,17 +767,19 @@ class Visualizer(gobject.GObject):
 				
 				
 				#shinato
-                if nodeI == 6: # 送信ノード
+                if nodeI == 0: # 送信ノード
                     node_view.set_color("red")
-                elif nodeI == 9: # 受信ノード
+                elif nodeI == 1: # 受信ノード
                     node_view.set_color("magenta")
-                elif nodeI == 10: # 署名が正しくない
+                elif nodeI == 30: # IP署名が正しくない
                     node_view.set_color("green")
-                elif nodeI == 26: # 署名が正しくない
+                elif nodeI == 71: # IP署名が正しくない
                     node_view.set_color("green")
-                elif nodeI == 7: # 位置情報詐称
+                elif nodeI == 55:
+                    node_view.set_color("green")
+                elif nodeI == 45: # 位置情報詐称
                     node_view.set_color("purple")
-                elif nodeI == 30: # 位置情報詐称
+                elif nodeI == 42: # 位置情報詐称
                     node_view.set_color("purple")
                 else:
 				    node_view.set_color("black")

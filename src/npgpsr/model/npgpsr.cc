@@ -823,11 +823,11 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 {
 	uint32_t flag = 0;
 	
-	if(sender==("192.168.1.24"))//位置情報を変えるノード(192.168.1.nodeId+1)
+	if(sender==("192.168.1.45"))//位置情報を変えるノード(192.168.1.nodeId+1)
 	{
 		flag = 1;
 	}
-	else if(sender==("192.168.1.29"))
+	else if(sender==("192.168.1.42"))
 	{
 		flag = 2;
 	}
@@ -1109,7 +1109,7 @@ RoutingProtocol::SendHello ()
 
                 // shinato
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
-                if(nodeId == 20 || nodeId == 25){
+                if(nodeId == 30 || nodeId == 55 || nodeId == 71){
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
@@ -1313,7 +1313,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 {
         //shinato 転送しない悪意ノード
 	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 80||not_foward ==100)
+        if(not_foward == 30||not_foward == 55 || not_foward == 71 || not_foward == 45 || not_foward == 42)
 	{	
 		return true;
 	}
