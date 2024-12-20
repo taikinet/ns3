@@ -46,6 +46,14 @@ int makeFile(int t){
     double sum_NGPSR = 0.0;
     double sum_PGPSR = 0.0;
     double sum_DGPSR = 0.0;
+    double max_GPSR = 0.0;  
+    double max_NGPSR = 0.0;
+    double max_PGPSR = 0.0;
+    double max_DGPSR = 0.0;
+    double min_GPSR = 1000000000; 
+    double min_NGPSR = 10000000000;
+    double min_PGPSR = 10000000000;
+    double min_DGPSR = 10000000000;
 	
 	std::vector<std::string> traceFiles = {"mobility112.tcl"};    // ここいじる
     for (const std::string& traceFile : traceFiles) {
@@ -66,6 +74,14 @@ int makeFile(int t){
             sum_NGPSR = 0;
             sum_PGPSR = 0;
             sum_DGPSR = 0;
+            max_GPSR = 0.0;  // 最初の値で初期化
+            max_NGPSR = 0.0;
+            max_PGPSR = 0.0;
+            max_DGPSR = 0.0;
+            min_GPSR = 1000000000;  // 最初の値で初期化
+            min_NGPSR = 10000000000;
+            min_PGPSR = 10000000000;
+            min_DGPSR = 10000000000;
 
 
             if (i < 9){
@@ -130,6 +146,14 @@ int makeFile(int t){
                     sum_NGPSR += NGPSR[r];
                     sum_PGPSR += PGPSR[r];
                     sum_DGPSR += DGPSR[r];
+                    if (GPSR[r] > max_GPSR) max_GPSR = GPSR[r];
+                    if (NGPSR[r] > max_NGPSR) max_NGPSR = NGPSR[r];
+                    if (PGPSR[r] > max_PGPSR) max_PGPSR = PGPSR[r];
+                    if (DGPSR[r] > max_DGPSR) max_DGPSR = DGPSR[r];
+                    if (GPSR[r] < min_GPSR) min_GPSR = GPSR[r];
+                    if (NGPSR[r] < min_NGPSR) min_NGPSR = NGPSR[r];
+                    if (PGPSR[r] < min_PGPSR) min_PGPSR = PGPSR[r];
+                    if (DGPSR[r] < min_DGPSR) min_DGPSR = DGPSR[r];
                 }
                 fs.close();	
 
@@ -140,6 +164,9 @@ int makeFile(int t){
 
                 fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
                 fs << value << ", " << avg_GPSR << ", " << avg_NGPSR << ", " << avg_PGPSR << ", " << avg_DGPSR << endl;
+                fs << "最大値" << ", " << max_GPSR << ", " << max_NGPSR << ", " << max_PGPSR << ", " << max_DGPSR << endl;
+                fs << "最小値" << ", " << min_GPSR << ", " << min_NGPSR << ", " << min_PGPSR << ", " << min_DGPSR << endl;
+                fs << "--------------------------------" << endl;
                 fs.close();
 
             } else {
@@ -174,6 +201,10 @@ int makeFile(int t){
                     fs <<std::to_string(r)<<"回目"<<","<<std::to_string(PGPSR[r])<<","<<std::to_string(DGPSR[r])<<endl;
                     sum_PGPSR += PGPSR[r];
                     sum_DGPSR += DGPSR[r];
+                    if (PGPSR[r] > max_PGPSR) max_PGPSR = PGPSR[r];
+                    if (DGPSR[r] > max_DGPSR) max_DGPSR = DGPSR[r];
+                    if (PGPSR[r] < min_PGPSR) min_PGPSR = PGPSR[r];
+                    if (DGPSR[r] < min_DGPSR) min_DGPSR = DGPSR[r];
                 }
                 fs.close();	
 
@@ -182,6 +213,9 @@ int makeFile(int t){
 
                 fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
                 fs << value << ", " << "署名なし" << ", " << "署名計算なし" << ", " << avg_PGPSR << ", " << avg_DGPSR << endl;
+                fs << "最大値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << max_PGPSR << ", " << max_DGPSR << endl;
+                fs << "最小値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << min_PGPSR << ", " << min_DGPSR << endl;
+                fs << "--------------------------------" << endl;
                 fs.close();
                     
             }
