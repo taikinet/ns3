@@ -30,22 +30,46 @@ send_line_notification4() {
 start_time=`date +%s` 
 
 i=1 #loop
-r=20 #実験回数   # ここいじる
+r=5 #実験回数   # ここいじる
 send_line_notification1
-for traceFile in mobility37.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+for traceFile in mobility37 mobility_tokai mobility74_112 mobility112 mobility37_185 mobility74_185 mobility112_185 mobility150_185 mobility185   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
-	if [ $traceFile = "mobility37.tcl" ]; then
+	if [ $traceFile = "mobility37" ]; then
+        fileName=mobility37.tcl
 		nodeCount=37
-		simulationTime=60     ### ここいじる
-	elif [ $traceFile = "mobility112.tcl" ]; then
+		simulationTime=250     ### ここいじる
+    elif [ $traceFile = "mobility_tokai" ]; then
+        fileName=mobility_tokai.tcl
+        nodeCount=37
+        simulationTime=250
+    elif [ $traceFile = "mobility74_112" ]; then
+        fileName=mobility112.tcl
+        nodeCount=74
+        simulationTime=250
+	elif [ $traceFile = "mobility112" ]; then
+        fileName=mobility112.tcl
 		nodeCount=112
-		simulationTime=60
-	elif [ $traceFile = "mobility185.tcl" ]; then
+		simulationTime=250
+	elif [ $traceFile = "mobility37_185" ]; then
+        fileName=mobility185.tcl
+		nodeCount=37
+		simulationTime=250
+    elif [ $traceFile = "mobility74_185" ]; then
+        fileName=mobility185.tcl
+		nodeCount=74
+		simulationTime=250
+    elif [ $traceFile = "mobility112_185" ]; then
+        fileName=mobility185.tcl
+		nodeCount=112
+		simulationTime=250
+    elif [ $traceFile = "mobility150_185" ]; then
+        fileName=mobility185.tcl
+		nodeCount=150
+		simulationTime=250
+	elif [$traceFile = "mobility185"]; then
+        fileName=mobility185.tcl
 		nodeCount=185
-		simulationTime=60
-	elif [$traceFile = "mobility_tokai.tcl"]; then
-		nodeCount=40
-		simlationTime=60
+		simlationTime=250
 	fi
 	for protocol in GPSR NGPSR NPGPSR NDGPSR
 	do
@@ -54,7 +78,7 @@ do
 		while [ $i -le $r ]; do
 		
 		echo "-run $i  --RoutingProtocol=$protocol "
-		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=/home/hry-user/ns-allinone-3.26/ns-3.26/node/$traceFile --nodeCount=$nodeCount --simTime=$simulationTime" 
+		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=/home/hry-user/ns-allinone-3.26/ns-3.26/node/$fileName --nodeCount=$nodeCount --simTime=$simulationTime" 
 		
 		mv ~/dataTemp/data.txt ~/dataTemp/data$i.txt
 		mv ~/dataTemp/data$i.txt ~/Simulation/$traceFile/$protocol
