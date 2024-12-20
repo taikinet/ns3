@@ -215,8 +215,8 @@ int makeFile(int t){
 
                 fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
                 fs << value << ", " << "署名なし" << ", " << "署名計算なし" << ", " << avg_PGPSR << ", " << avg_DGPSR << endl;
-                fs << "最大値" << ", " << max_GPSR << ", " << max_NGPSR << ", " << max_PGPSR << ", " << max_DGPSR << endl;
-                fs << "最小値" << ", " << min_GPSR << ", " << min_NGPSR << ", " << min_PGPSR << ", " << min_DGPSR << endl;
+                fs << "最大値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << max_PGPSR << ", " << max_DGPSR << endl;
+                fs << "最小値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << min_PGPSR << ", " << min_DGPSR << endl;
                 fs << "--------------------------------" << endl;
                 fs.close();
                     
