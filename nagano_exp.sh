@@ -8,7 +8,7 @@ rm -rf ~/Simulation/* #dataファイルの下を削除する
 
 # ラインに送信
 send_line_notification1() { 
-	message="シミュレーション開始！\n↓--------------------------↓"
+	message="シミュレーション開始！  ↓--------------------------↓"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
 send_line_notification2() { 
@@ -18,23 +18,40 @@ send_line_notification2() {
 }
 send_line_notification3() { 
 	traceFile=$1
-	message="$traceFile :  終了"
+    nodeCount=$2
+    simulationTime=$3
+	message="$traceFile,  ノード数：${nodeCount},  simTime : ${simulationTime}   終了"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
 
 send_line_notification4() {
-	message="シミュレーションが終了しました。"
+    HH=$HH
+    MM=$MM
+    SS=$SS
+	message="シミュレーションが終了しました。  シュミレーション時間${HH}:${MM}:${SS}"
 	curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
+
+send_line_notification5() {
+    traceFile=$1
+    file_path="/home/hry-user/Simulation/$traceFile/avarage.txt"
+    if [ -f "$file_path" ]; then
+        message=$(<"$file_path")
+    fi
+    curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+
 
 start_time=`date +%s` 
 
 i=1 #loop
-r=2 #実験回数   # ここいじる
+r=1000 #実験回数   # ここいじる
+nodeCount=0
+simlationTime=0
 send_line_notification1
 for traceFile in mobility112.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
-	if [ $traceFile = "mobility112.tcl" ]; then
+	if [ $traceFile == "mobility112.tcl" ]; then
 		nodeCount=74  
 		simulationTime=50 ### ここいじる
     # else [ $traceFile = "mobility37.tcl" ]; then
@@ -43,9 +60,9 @@ do
 	# elif [ $traceFile = "mobility185.tcl" ]; then
 	# 	nodeCount=185
 	# 	simulationTime=60
-	# elif [$traceFile = "mobility_tokai.tcl"]; then
+	# elif [ $traceFile == "mobility_tokai.tcl" ]; then
 	# 	nodeCount=40
-	# 	simlationTime=60
+	# 	simulationTime=50
 	fi
 	for protocol in GPSR NGPSR NPGPSR NDGPSR
 	do
@@ -71,7 +88,7 @@ do
 
 	done
 		
-	send_line_notification3 "$traceFile"
+	send_line_notification3 "$traceFile" $nodeCount $simulationTime
 
 done
 
@@ -89,4 +106,9 @@ echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーション
 
 
 # LINE通知を送信
-send_line_notification4
+send_line_notification4 $HH $MM $SS
+
+for traceFile in mobility112.tcl # ここいじる
+do
+    send_line_notification5 $traceFile
+done
