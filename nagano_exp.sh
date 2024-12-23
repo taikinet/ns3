@@ -133,6 +133,7 @@ TARGET_BRANCH="recent_include-liar"
 git checkout $TARGET_BRANCH
 git pull origin recent_include-liar
 g++ -std=c++11 -o naganomaketable naganomaketable.cc
+branch=$(git rev-parse --abbrev-ref HEAD)
 
 rm -rf ~/dataTemp
 rm -rf ~/Simulation_liar/* #dataファイルの下を削除する
@@ -155,6 +156,12 @@ send_line_notification8() {
     curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
 }
 
+send_line_notification9() {
+	branch=$1
+    message="現在のブランチ：${branch}"
+    curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+}
+
 start_time=`date +%s` 
 
 i=1 #loop
@@ -162,6 +169,7 @@ r=250 #実験回数   # ここいじる
 nodeCount=0
 simlationTime=0
 send_line_notification1
+send_line_notification9 $branch
 for traceFile in mobility112_simTime=250.tcl mobility112_simTime=300.tcl # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile == "mobility112_simTime=250.tcl" ]; then
@@ -227,6 +235,7 @@ done
 git stash
 TARGET_BRANCH="recent"
 git checkout $TARGET_BRANCH
+branch=$(git rev-parse --abbrev-ref HEAD)
 
 rm -rf ~/dataTemp
 rm -rf ~/Simulation300/* #dataファイルの下を削除する
@@ -248,6 +257,7 @@ r=250 #実験回数   # ここいじる
 nodeCount=0
 simlationTime=0
 send_line_notification1
+send_line_notification9 $branch
 for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile == "mobility112.tcl" ]; then
