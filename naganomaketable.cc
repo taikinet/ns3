@@ -55,7 +55,7 @@ int makeFile(int t){
     double min_PGPSR = 10000000000;
     double min_DGPSR = 10000000000;
 	
-	std::vector<std::string> traceFiles = {"mobility112.tcl"};    // ここいじる
+	std::vector<std::string> traceFiles = {"mobility112_simTime=250.tcl", "mobility112_simTime=300.tcl"};    // ここいじる
     for (const std::string& traceFile : traceFiles) {
 
 
@@ -63,7 +63,7 @@ int makeFile(int t){
         std::string value = "NULL";	
 
         fstream fs;
-        fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
+        fs.open("/home/hry-user/Simulation_liar/"+traceFile+"/avarage.txt", ios::out | ios::app);
         fs << traceFile << endl;
         fs << std::to_string(t) << "回の平均" << ", " << "GPSR" << ", " << "NGPSR" << ", " << "NPGPSR" << ", " << "NDGPSR" << endl;
         fs.close();
@@ -88,10 +88,10 @@ int makeFile(int t){
                 for(int l=1;l<=t;l++){
                 
                 
-                    std::string Gstr = "/home/hry-user/Simulation/"+traceFile+"/GPSR/data" +std::to_string(l)+ ".txt";
-                    std::string Istr = "/home/hry-user/Simulation/"+traceFile+"/NGPSR/data" +std::to_string(l)+ ".txt";
-                    std::string Hstr = "/home/hry-user/Simulation/"+traceFile+"/NPGPSR/data" +std::to_string(l)+ ".txt";
-                    std::string Dstr = "/home/hry-user/Simulation/"+traceFile+"/NDGPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Gstr = "/home/hry-user/Simulation_liar/"+traceFile+"/GPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Istr = "/home/hry-user/Simulation_liar/"+traceFile+"/NGPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Hstr = "/home/hry-user/Simulation_liar/"+traceFile+"/NPGPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Dstr = "/home/hry-user/Simulation/liar/"+traceFile+"/NDGPSR/data" +std::to_string(l)+ ".txt";
 
                     
                     
@@ -137,7 +137,7 @@ int makeFile(int t){
                     value="NULL";			
                 }
                 fstream fs;
-                fs.open("/home/hry-user/Simulation/"+traceFile+"/"+value+".txt", ios::out);
+                fs.open("/home/hry-user/Simulation_liar/"+traceFile+"/"+value+".txt", ios::out);
                 fs << value<<","<<"GPSR"<<","<<"NGPSR"<<","<<"NPGPSR"<<","<<"NDGPSR"<<endl;
                 
                 for(int r=1; r<=t; r++){
@@ -162,7 +162,7 @@ int makeFile(int t){
                 avg_PGPSR = sum_PGPSR / t;
                 avg_DGPSR = sum_DGPSR / t;
 
-                fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
+                fs.open("/home/hry-user/Simulation_liar/"+traceFile+"/avarage.txt", ios::out | ios::app);
                 fs << value << ", " << avg_GPSR << ", " << avg_NGPSR << ", " << avg_PGPSR << ", " << avg_DGPSR << endl;
                 fs << "最大値" << ", " << max_GPSR << ", " << max_NGPSR << ", " << max_PGPSR << ", " << max_DGPSR << endl;
                 fs << "最小値" << ", " << min_GPSR << ", " << min_NGPSR << ", " << min_PGPSR << ", " << min_DGPSR << endl;
@@ -172,8 +172,8 @@ int makeFile(int t){
             } else {
                 for(int l=1;l<=t;l++){
                 
-                    std::string Hstr = "/home/hry-user/Simulation/"+traceFile+"/NPGPSR/data" +std::to_string(l)+ ".txt";
-                    std::string Dstr = "/home/hry-user/Simulation/"+traceFile+"/NDGPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Hstr = "/home/hry-user/Simulation_liar/"+traceFile+"/NPGPSR/data" +std::to_string(l)+ ".txt";
+                    std::string Dstr = "/home/hry-user/Simulation_liar/"+traceFile+"/NDGPSR/data" +std::to_string(l)+ ".txt";
 
                     ReturnStrings( Hstr.c_str(), i, PGPSR_0, 128 );
                     ReturnStrings( Dstr.c_str(), i, DGPSR_0, 128 );
@@ -194,7 +194,7 @@ int makeFile(int t){
                 }
 
                 fstream fs;
-                fs.open("/home/hry-user/Simulation/"+traceFile+"/"+value+".txt", ios::out);
+                fs.open("/home/hry-user/Simulation_liar/"+traceFile+"/"+value+".txt", ios::out);
                 fs << value<<","<<"NPGPSR"<<","<<"NDGPSR"<<endl;
                 
                 for(int r=1; r<=t; r++){
@@ -211,7 +211,7 @@ int makeFile(int t){
                 avg_PGPSR = sum_PGPSR / t;
                 avg_DGPSR = sum_DGPSR / t;
 
-                fs.open("/home/hry-user/Simulation/"+traceFile+"/avarage.txt", ios::out | ios::app);
+                fs.open("/home/hry-user/Simulation_liar/"+traceFile+"/avarage.txt", ios::out | ios::app);
                 fs << value << ", " << "署名なし" << ", " << "署名計算なし" << ", " << avg_PGPSR << ", " << avg_DGPSR << endl;
                 fs << "最大値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << max_PGPSR << ", " << max_DGPSR << endl;
                 fs << "最小値" << ", " << "署名なし" << ", " << "署名計算なし" << ", " << min_PGPSR << ", " << min_DGPSR << endl;
