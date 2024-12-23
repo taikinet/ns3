@@ -235,6 +235,8 @@ done
 git stash
 TARGET_BRANCH="recent"
 git checkout $TARGET_BRANCH
+git pull origin recent
+g++ -std=c++11 -o naganomaketable2 naganomaketable2.cc
 branch=$(git rev-parse --abbrev-ref HEAD)
 
 rm -rf ~/dataTemp
