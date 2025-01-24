@@ -306,12 +306,12 @@ class RoutingTableEntry
 
     /* changed point */
 
-    uint32_t GetBandwidth() const
+    double GetBandwidth() const
     {
         return m_bandwidth;
     }
 
-    void SetBandwidth(uint32_t b)
+    void SetBandwidth(double b)
     {
         m_bandwidth = b;
     }
@@ -327,12 +327,12 @@ class RoutingTableEntry
         m_delay = d;
     }
 
-    uint32_t GetE() const
+    double GetE() const
     {
         return m_E;
     }
 
-    void SetE(uint32_t e)
+    void SetE(double e)
     {
         m_E = e;
     }
@@ -439,9 +439,9 @@ class RoutingTableEntry
     Time m_blackListTimeout;
 
     // パラメータ追加
-    uint32_t m_bandwidth;  // パラメータ追加
+    double m_bandwidth;  // パラメータ追加
     Time m_delay;          // パラメータ追加
-    uint32_t m_E;          // パラメータ追加
+    double m_E;          // パラメータ追加
 
 };
 

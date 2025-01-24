@@ -194,15 +194,15 @@ class RoutingProtocol : public Ipv4RoutingProtocol
     
     /* changed point */
 
-    uint32_t GetRemainingBattery();    // バッテリー残量を確認する
+    double GetRemainingBattery();    // バッテリー残量を確認する
 
     uint32_t GetNeighborCount();       // 隣接ノード数を取得する
 
-    uint32_t CaluculateE(uint32_t a, uint32_t b);  // エネルギーを計算する
+    double CaluculateE(uint32_t a, double b);  // エネルギーを計算する
 
-    uint32_t GetDatarate();            // データレートを取得する
+    double GetDatarate();            // データレートを取得する
 
-    double CaluculateM(uint32_t a, uint32_t b, uint32_t c);  // Mを計算する
+    double CaluculateM(double a, Time b, double c);  // Mを計算する
 
   protected:
     void DoInitialize() override;

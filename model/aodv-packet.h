@@ -149,9 +149,9 @@ class RreqHeader : public Header
                uint32_t dstSeqNo = 0,
                Ipv4Address origin = Ipv4Address(),
                uint32_t originSeqNo = 0,
-               uint32_t bandwidth = 0,    // 4byte
+               double bandwidth = 0.0,    // 4byte
                Time delay = Seconds(0),   // 8byte
-               uint32_t E = 0        // 4byte
+               double E = 0.0       // 4byte
                ); 
     /**
      * \brief Get the type ID.
@@ -279,7 +279,7 @@ class RreqHeader : public Header
      * \brief Set the bandwidth
      * \param b the bandwidth
      */
-    void SetBandwidth(uint32_t b)   
+    void SetBandwidth(double b)   
     {
         m_bandwidth = b;
     }
@@ -288,7 +288,7 @@ class RreqHeader : public Header
      * \brief Get the bandwidth
      * \return the bandwidth
      */
-    uint32_t GetBandwidth() const   
+    double GetBandwidth() const   
     {
         return m_bandwidth;
     }
@@ -315,7 +315,7 @@ class RreqHeader : public Header
      * \brief Set the energy
      * \param e the energy
      */
-    void SetE(uint32_t e) 
+    void SetE(double e) 
     {
         m_E = e;
     }
@@ -324,7 +324,7 @@ class RreqHeader : public Header
      * \brief Get the energy
      * \return the energy
      */
-    uint32_t GetE() const
+    double GetE() const
     {
         return m_E;
     }
@@ -378,9 +378,9 @@ class RreqHeader : public Header
     uint32_t m_dstSeqNo;    ///< Destination Sequence Number
     Ipv4Address m_origin;   ///< Originator IP Address
     uint32_t m_originSeqNo; ///< Source Sequence Number
-    uint32_t m_bandwidth;   ///< Bandwidth
+    double m_bandwidth;   ///< Bandwidth
     Time  m_delay;          ///< Delay
-    uint32_t m_E;           ///< Energy
+    double m_E;           ///< Energy
 };
 
 /**

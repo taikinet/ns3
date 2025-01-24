@@ -53,9 +53,9 @@ RoutingTableEntry::RoutingTableEntry(Ptr<NetDevice> dev,
       m_reqCount(0),
       m_blackListState(false),
       m_blackListTimeout(Simulator::Now()),
-      m_bandwidth(0),     // パラメータ追加
+      m_bandwidth(0.0),     // パラメータ追加
       m_delay(Seconds(0)),
-      m_E(0)
+      m_E(0.0)
     {
     m_ipv4Route = Create<Ipv4Route>();
     m_ipv4Route->SetDestination(dst);

@@ -39,6 +39,7 @@
 #include "ns3/wifi-phy.h"
 #include "ns3/energy-module.h"
 #include "ns3/wifi-radio-energy-model-helper.h"
+#include "ns3/node-list.h"
 
 #include <algorithm>
 #include <limits>
@@ -1042,7 +1043,7 @@ uint32_t RoutingProtocol::GetNeighborCount() {
 }
 
 // バッテリー残量を取得する
-uint32_t RoutingProtocol::GetRemainingBattery() {
+double RoutingProtocol::GetRemainingBattery() {
     // 現在のノードを取得
     Ptr<Node> node = m_ipv4->GetObject<Node>();
 
@@ -1057,36 +1058,57 @@ uint32_t RoutingProtocol::GetRemainingBattery() {
     return 0; // エネルギーソースが見つからない場合
 }
 
-uint32_t RoutingProtocol::CaluculateE(uint32_t neighborcount, uint32_t remainingbattery) {
-    uint32_t E = remainingbattery/(neighborcount+1);
+double RoutingProtocol::CaluculateE(uint32_t neighborcount, double remainingbattery) {
+    double E = remainingbattery/(((double)neighborcount)+1.0);
     return E;
 }
 
-uint32_t RoutingProtocol::GetDatarate(){
-    Ptr<WifiNetDevice> wifiDevice = DynamicCast<WifiNetDevice>(m_lo); // Wi-Fiデバイスを取得
+double RoutingProtocol::GetDatarate() {
+    // 現在のノードを取得
+    Ptr<Node> node = m_ipv4->GetObject<Node>();
+    uint32_t nodeId = node->GetId();
 
-    if (wifiDevice) {
-    // wifiの物理層の設定を取得して設定されたチャネル幅を取得する。
-    Ptr<WifiPhy> phy = wifiDevice->GetPhy(); // Wi-Fi物理レイヤを取得
+    if (!node) {
+        std::cerr << "Node with ID " << nodeId << " does not exist." << std::endl;
+        return 0;
+    }
+
+    // ノードのWi-Fiデバイスを取得
+    Ptr<WifiNetDevice> wifiDevice;
+    for (uint32_t i = 0; i < node->GetNDevices(); ++i) {
+        wifiDevice = DynamicCast<WifiNetDevice>(node->GetDevice(i));
+        if (wifiDevice) {
+            break; // Wi-Fiデバイスが見つかった場合
+        }
+    }
+
+    if (!wifiDevice) {
+        std::cerr << "No Wi-Fi device found for Node ID " << nodeId << std::endl;
+        return 0;
+    }
+
+    // Wi-Fi物理層の設定を取得
+    Ptr<WifiPhy> phy = wifiDevice->GetPhy();
     uint32_t frequency = phy->GetChannelWidth(); // 帯域幅を取得 (MHz単位)
-    std::cout << "Frequency: " << frequency << " MHz" << std::endl;
+    std::cout << "Node " << nodeId << " Frequency: " << frequency << " MHz" << std::endl;
 
-    /*      channelwidthは通信できる周波幅(Hz)を示す
-            bandwidth(bps)はdatarateのことを示す        */
-
-    // 上の行で取得したfrequencyを用いて実際のdatarateを算出する。
+    // 実際のデータレートを算出
     Ptr<WifiRemoteStationManager> manager = wifiDevice->GetRemoteStationManager();
     WifiMode mode = manager->GetDefaultMode();
     uint32_t dataRate = mode.GetDataRate(frequency) / 1e6; // 周波数を指定してデータレートを取得
-    std::cout << "DataRate: " << dataRate << " Mbps" << std::endl;
+    std::cout << "Node " << nodeId << " DataRate: " << dataRate << " Mbps" << std::endl;
+
     return dataRate;
-    }
-    return 0;
 }
 
-// M値を計算する(delayをint型に変換するためにdelay.GetMicroSeconds()を使用)
-double RoutingProtocol::CaluculateM(uint32_t band, uint32_t delay, uint32_t E) {
-    double M = 0.2*(((double)band)/1e6) + 0.5*(((double)delay)/1e6) + 0.3*(((double)E)/100.0);
+// M値を計算する(delayをint型に変換するためにdelay.GetMillSeconds()を使用)
+double RoutingProtocol::CaluculateM(double band, Time delay, double E) {
+    std::cout << "band: " << band  << "delay:" << delay << "E:" << E << std::endl;
+    Time current = Simulator::Now();
+    double currenttime = current.GetMilliSeconds();
+    double delaytime = delay.GetMilliSeconds();
+    double M = 0.3*(band/600) + 0.2*((1-(delaytime/currenttime)))/currenttime + 0.5*(E/100.0);
+    std::cout << "M: " << M << std::endl;
     return M;
 }
 
@@ -1116,10 +1138,12 @@ RoutingProtocol::SendRequest(Ipv4Address dst)
     RoutingTableEntry rt;
     // Using the Hop field in Routing Table to manage the expanding ring search
     uint16_t ttl = m_ttlStart;
-    uint32_t bandwidth = GetDatarate();
-    uint32_t E = CaluculateE(GetNeighborCount(), GetRemainingBattery());
-    Time delay = Simulator::Now();
 
+    // changed point
+    double bandwidth = GetDatarate();
+    double E = CaluculateE(GetNeighborCount(), GetRemainingBattery());
+    std::cout << "やべー " << E << std::endl;
+    Time delay = Simulator::Now();
     rreqHeader.SetBandwidth(bandwidth);
     rreqHeader.SetDelay(delay);
     rreqHeader.SetE(E);
@@ -1152,7 +1176,6 @@ RoutingProtocol::SendRequest(Ipv4Address dst)
             rreqHeader.SetUnknownSeqno(true);   // シーケンス番号が不明の場合
         }
 
-        // 逆引きルートを設定
         rt.SetHop(ttl);
         rt.SetFlag(IN_SEARCH);
         rt.SetLifeTime(m_pathDiscoveryTime);    // ライフタイムを設定
@@ -1431,14 +1454,16 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     rreqHeader.SetHopCount(hop);
 
     // QoSパラメータをヘッダーから取得
-    uint32_t dr = rreqHeader.GetBandwidth();
+    double dr = rreqHeader.GetBandwidth();
     Time delay = Simulator::Now()-rreqHeader.GetDelay();
-    uint32_t E = rreqHeader.GetE();
-    double M = CaluculateM(dr, delay.GetMilliSeconds(), E);
+    double E = rreqHeader.GetE();
+    std::cout<<"ヘッダー  E:"<<E<<" delay:"<<delay<<" band:"<<dr<<std::endl;
+    double M = CaluculateM(dr, delay, E);     // ヘッダーからのQoSパラメータを取得
 
     // 自身のQoS情報を取得
-    uint32_t x = GetDatarate();
-    uint32_t y = CaluculateE(GetNeighborCount(), GetRemainingBattery());
+    double x = GetDatarate();               // データレートを取得
+    double y = CaluculateE(GetNeighborCount(), GetRemainingBattery());  // バッテリー残量を取得
+    std::cout<<"自身のQoS情報"<<y<<","<< GetRemainingBattery()<<","<<GetNeighborCount()<<std::endl;
 
     /*
      *  When the reverse route is created or updated, the following actions on the route are also
@@ -1472,7 +1497,7 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
             /*nextHop=*/src,
             /*lifetime=*/Time(2 * m_netTraversalTime - 2 * hop * m_nodeTraversalTime));
         
-        // QoSパラメータの追加
+        // QoSパラメータの追加(ヘッダーから取得)
         newEntry.SetBandwidth(dr);
         newEntry.SetDelay(delay);
         newEntry.SetE(E);
@@ -1481,17 +1506,17 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     }
     // ルーティングテーブルに逆引きルートが存在する時
     else
-    {   uint32_t b = toOrigin.GetBandwidth();
+    {   // ルーティングテーブルからQoSパラメータを取得
+        double b = toOrigin.GetBandwidth();
         Time d = toOrigin.GetDelay();
-        uint32_t e = toOrigin.GetE();
-        double m = CaluculateM(b, d.GetMilliSeconds(), e);
+        double e = toOrigin.GetE();
+        double m = CaluculateM(b, d, e);
         // ValidなシークエンスNo.が存在する時
         if (toOrigin.GetValidSeqNo())
         {
-            std::cout << "seq: " << rreqHeader.GetOriginSeqno() << std::endl;
             if (int32_t(rreqHeader.GetOriginSeqno()) - int32_t(toOrigin.GetSeqNo()) > 0)
             {
-                std::cout << "M2: " << M << std::endl;
+                std::cout << "Not Seq changed " << std::endl;
                 toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                 toOrigin.SetValidSeqNo(true);
                 toOrigin.SetNextHop(src);
@@ -1507,9 +1532,10 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
             }
             else if (int32_t(rreqHeader.GetOriginSeqno()) - int32_t(toOrigin.GetSeqNo()) == 0)
             {   
-                std::cout << "M3: " << M << std::endl;
+                std::cout << "Seq equal " << std::endl;
                 if (hop < uint8_t(toOrigin.GetHop()))
                 {
+                    std::cout << "Hop < hop" << std::endl;
                     toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                     toOrigin.SetValidSeqNo(true);
                     toOrigin.SetNextHop(src);
@@ -1525,8 +1551,10 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                 }
                 else if (hop == uint8_t(toOrigin.GetHop()))
                 {
-                    std::cout << "M: " << M << std::endl;
-                    std::cout << "m: " << m << "b:" << b << "d:" << d << "E:" << E << std::endl;
+                    std::cout <<"逆引きルーティングテーブルから取得"<< "b: " << b << "d: " << d.GetMilliSeconds() << "e: " << e << std::endl;
+                    std::cout << "Hop == hop" << std::endl;
+                    std::cout << "M(H): " << M << std::endl;
+                    std::cout << "m(rt): " << m << std::endl;
                     if (M > m)
                     {
                         std::cout << "M > m" << std::endl;
@@ -1562,6 +1590,7 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
             toOrigin.SetE(E);
             m_routingTable.Update(toOrigin);
         }
+        // このノードのQoSパラメータを比較し、ヘッダーのものより小さい場合は更新
         if(dr>x){
             rreqHeader.SetBandwidth(x);
         }

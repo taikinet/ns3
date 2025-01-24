@@ -63,9 +63,9 @@ main(int argc, char** argv)
 }
 
 AodvExample::AodvExample()
-    : size(100),
+    : size(10),
       step(50),
-      totalTime(100),
+      totalTime(1000),
       pcap(true),
       printRoutes(true)
 {
@@ -150,16 +150,16 @@ AodvExample::Run()
         double successRate = (static_cast<double>(flow.second.rxPackets) / flow.second.txPackets) * 100.0;
         std::cout << "  Success Rate: " << successRate << " %\n";
 
-        // エネルギー消費 (ノードごとのエネルギー計算)
-        for (uint32_t i = 0; i < nodes.GetN(); ++i)
-        {
-            Ptr<energy::BasicEnergySource> energySource = nodes.Get(i)->GetObject<energy::BasicEnergySource>();
-            if (energySource)
-            {
-                double energyConsumed = energySource->GetInitialEnergy() - energySource->GetRemainingEnergy();
-                std::cout << "  Node " << i << " Energy Consumed: " << energyConsumed << " J\n";
-            }
-        }
+        // // エネルギー消費 (ノードごとのエネルギー計算)
+        // for (uint32_t i = 0; i < nodes.GetN(); ++i)
+        // {
+        //     Ptr<energy::BasicEnergySource> energySource = nodes.Get(i)->GetObject<energy::BasicEnergySource>();
+        //     if (energySource)
+        //     {
+        //         double energyConsumed = energySource->GetInitialEnergy() - energySource->GetRemainingEnergy();
+        //         std::cout << "  Node " << i << " Energy Consumed: " << energyConsumed << " J\n";
+        //     }
+        // }
     }
 
     Simulator::Destroy(); // シミュレーションを破棄
@@ -173,21 +173,37 @@ AodvExample::Report(std::ostream&)
 void
 AodvExample::CreateNodes()  // ノードを作成
 {
-    std::cout << "Creating " << (unsigned)size << " nodes " << step << " m apart.\n";   // ノードを作成
-    nodes.Create(size);                                                                // ノードを作成
-    for (uint32_t i = 0; i < size; ++i)                                              // ノードの数だけ繰り返す
-    {
-        std::ostringstream os;                                                    // 文字列ストリームを作成
-        os << "node-" << i;                                                       // ノード名を設定
-        Names::Add(os.str(), nodes.Get(i));                                       // ノード名を設定
+    std::cout << "Creating " << (unsigned)size << " nodes " << step << " m apart.\n"; // ノードを作成
+    nodes.Create(size); // ノードを作成
+
+    for (uint32_t i = 0; i < size; ++i) {
+        std::ostringstream os;
+        os << "node-" << i; // ノード名を設定
+        Names::Add(os.str(), nodes.Get(i)); // ノード名を設定
     }
 
     MobilityHelper mobility;
-    mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator",                          // 位置はランダム
-                                  "X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=500.0]"),
-                                  "Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=500.0]"));   
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");                                // 位置は固定
-    mobility.Install(nodes);
+    mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator", // 位置はランダム
+                                  "X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"),
+                                  "Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"));
+
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobility.Install(nodes); // 全ノードに適用
+
+    // 最初のノードを左上に配置
+    Ptr<MobilityModel> mobility0 = nodes.Get(0)->GetObject<MobilityModel>();
+    if (mobility0) {
+        mobility0->SetPosition(Vector(0.0, 0.0, 0.0)); // X=0, Y=0, Z=0
+    } else {
+    }
+
+    // 最後のノードを右下に配置
+    uint32_t lastNodeIndex = nodes.GetN() - 1;
+    Ptr<MobilityModel> mobilityLast = nodes.Get(lastNodeIndex)->GetObject<MobilityModel>();
+    if (mobilityLast) {
+        mobilityLast->SetPosition(Vector(40.0, 40.0, 0.0)); // X=50, Y=50, Z=0
+    } else {
+    }
 }
 
 void
@@ -197,15 +213,26 @@ AodvExample::CreateDevices()    // デバイスを作成
     wifiMac.SetType("ns3::AdhocWifiMac");           // MACタイプを設定
     YansWifiPhyHelper wifiPhy;                      // Wi-Fi PHYヘルパー (物理層)
     YansWifiChannelHelper wifiChannel = YansWifiChannelHelper::Default();   // Wi-Fiチャネルヘルパー
+
+    // wifiChannel.AddPropagationLoss("ns3::LogDistancePropagationLossModel",
+    //                            "Exponent", DoubleValue(1.0),         // 室内環境を想定した減衰指数
+    //                            "ReferenceLoss", DoubleValue(5.0));  // 基準距離での信号強度損失を小さく設定 // 伝搬損失モデルを設定
     wifiPhy.SetChannel(wifiChannel.Create());                               // チャネルを設定
+    wifiPhy.Set("TxPowerStart", DoubleValue(20.0)); // 最小送信電力 (dBm)
+    wifiPhy.Set("TxPowerEnd", DoubleValue(20.0));   // 最大送信電力 (dBm)
+
 
     WifiHelper wifi;                             // Wi-Fiヘルパー
-    wifi.SetStandard(WIFI_STANDARD_80211n);      // Wi-Fi標準を設定
+    // wifi.SetStandard(WIFI_STANDARD_80211n);      // Wi-Fi標準を設定
 
     // IdealWifiManagerを設定
-    wifi.SetRemoteStationManager("ns3::IdealWifiManager");
+    // wifi.SetRemoteStationManager("ns3::MinstrelWifiManager");
+    
+    wifi.SetStandard(WIFI_STANDARD_80211a);      // Wi-Fi標準を設定
+    wifi.SetRemoteStationManager("ns3::ConstantRateWifiManager",
+                          "DataMode", StringValue("OfdmRate54Mbps"),  // 最大54Mbps
+                      "ControlMode", StringValue("OfdmRate6Mbps")); // 制御フレームは6Mbps
 
-    // 
     devices = wifi.Install(wifiPhy, wifiMac, nodes);
 
     for (uint32_t i = 0; i < nodes.GetN(); ++i)         // ノードの数だけ繰り返す
@@ -263,8 +290,8 @@ AodvExample::InstallApplications()
     serverApps.Stop(Seconds(totalTime));        // サーバを停止
 
     UdpEchoClientHelper echoClient(interfaces.GetAddress(size - 1), 9); // サーバのアドレスとポート番号を指定
-    echoClient.SetAttribute("MaxPackets", UintegerValue(100)); // 送信パケット数
-    echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0))); // パケット送信間隔
+    echoClient.SetAttribute("MaxPackets", UintegerValue(20)); // 送信パケット数
+    echoClient.SetAttribute("Interval", TimeValue(Seconds(2.0))); // パケット送信間隔
     echoClient.SetAttribute("PacketSize", UintegerValue(1024)); // パケットサイズを設定
 
     ApplicationContainer clientApps = echoClient.Install(nodes.Get(0)); // 最初のノードにクライアントを配置
@@ -284,7 +311,7 @@ AodvExample::InstallEnergyModels()
         Ptr<energy::BasicEnergySource> energySource = CreateObject<energy::BasicEnergySource>();
 
         // 初期エネルギーを設定（例: 10ジュール）
-        energySource->SetInitialEnergy(100.0);
+        energySource->SetInitialEnergy(50.0);
         node->AggregateObject(energySource);
 
         // Wi-Fiエネルギーモデルの作成
@@ -293,8 +320,8 @@ AodvExample::InstallEnergyModels()
         energySource->AppendDeviceEnergyModel(energyModel);
 
          // 消費電力 (A) を設定
-        energyModel->SetAttribute("TxCurrentA", DoubleValue(0.17));  // 送信時
-        energyModel->SetAttribute("RxCurrentA", DoubleValue(0.10));  // 受信時
+        energyModel->SetAttribute("TxCurrentA", DoubleValue(0.1));  // 送信時
+        energyModel->SetAttribute("RxCurrentA", DoubleValue(0.1));  // 受信時
         energyModel->SetAttribute("IdleCurrentA", DoubleValue(0.01)); // 待機時
         energyModel->SetAttribute("SleepCurrentA", DoubleValue(0.001)); // スリープ時
 

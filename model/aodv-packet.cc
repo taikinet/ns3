@@ -125,17 +125,17 @@ operator<<(std::ostream& os, const TypeHeader& h)
 //-----------------------------------------------------------------------------
 // RREQ
 //-----------------------------------------------------------------------------
-RreqHeader::RreqHeader(uint8_t flags,
-                       uint8_t reserved,
-                       uint8_t hopCount,
-                       uint32_t requestID,
-                       Ipv4Address dst,
-                       uint32_t dstSeqNo,
-                       Ipv4Address origin,
-                       uint32_t originSeqNo,
-                       uint32_t bandwidth,
-                       Time delay,
-                       uint32_t E)
+RreqHeader::RreqHeader(uint8_t flags,               // 1byte
+                       uint8_t reserved,            // 1byte
+                       uint8_t hopCount,            // 1byte
+                       uint32_t requestID,          // 4byte
+                       Ipv4Address dst,             // 4byte
+                       uint32_t dstSeqNo,           // 4byte
+                       Ipv4Address origin,          // 4byte
+                       uint32_t originSeqNo,        // 4byte
+                       double bandwidth,        // 8byte
+                       Time delay,              // 8byte
+                       double E)                // 8byte
     : m_flags(flags),
       m_reserved(reserved),
       m_hopCount(hopCount),
@@ -171,7 +171,7 @@ RreqHeader::GetInstanceTypeId() const
 uint32_t
 RreqHeader::GetSerializedSize() const   // シリアライズのサイズ
 {
-    return 39;
+    return 47;
 }
 
 void
@@ -184,10 +184,12 @@ RreqHeader::Serialize(Buffer::Iterator i) const     // シリアライズの実�
     WriteTo(i, m_dst);
     i.WriteHtonU32(m_dstSeqNo);
     WriteTo(i, m_origin);
-    i.WriteHtonU32(m_originSeqNo);
-    i.WriteHtonU32(m_bandwidth);                    // シリアライズの追加
-    i.WriteHtonU64(m_delay.GetMicroSeconds());
-    i.WriteHtonU32(m_E);
+    i.WriteHtonU32(m_originSeqNo); 
+    uint64_t bandwidthBits = *reinterpret_cast<const uint64_t*>(&m_bandwidth);
+    i.WriteHtonU64(bandwidthBits);
+    i.WriteHtonU64(m_delay.GetMilliSeconds());
+    uint64_t EBits = *reinterpret_cast<const uint64_t*>(&m_E);
+    i.WriteHtonU64(EBits);
 }
 
 uint32_t
@@ -202,9 +204,11 @@ RreqHeader::Deserialize(Buffer::Iterator start)
     m_dstSeqNo = i.ReadNtohU32();
     ReadFrom(i, m_origin);
     m_originSeqNo = i.ReadNtohU32();
-    m_bandwidth = i.ReadNtohU32();                  // デシリアライズの追加
-    m_delay = MicroSeconds(i.ReadNtohU64());
-    m_E = i.ReadNtohU32();
+    uint64_t bandwidthBits = i.ReadNtohU64();
+    m_bandwidth = *reinterpret_cast<double*>(&bandwidthBits);
+    m_delay = MilliSeconds(i.ReadNtohU64());
+    uint64_t EBits = i.ReadNtohU64();
+    m_E = *reinterpret_cast<double*>(&EBits);
 
     uint32_t dist = i.GetDistanceFrom(start);
     NS_ASSERT(dist == GetSerializedSize());
