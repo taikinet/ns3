@@ -63,9 +63,9 @@ main(int argc, char** argv)
 }
 
 AodvExample::AodvExample()
-    : size(10),
+    : size(6),
       step(50),
-      totalTime(1000),
+      totalTime(500),
       pcap(true),
       printRoutes(true)
 {
@@ -183,27 +183,75 @@ AodvExample::CreateNodes()  // ノードを作成
     }
 
     MobilityHelper mobility;
-    mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator", // 位置はランダム
-                                  "X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"),
-                                  "Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=50.0]"));
-
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel"); // 固定位置モデルを設定
     mobility.Install(nodes); // 全ノードに適用
 
-    // 最初のノードを左上に配置
-    Ptr<MobilityModel> mobility0 = nodes.Get(0)->GetObject<MobilityModel>();
-    if (mobility0) {
-        mobility0->SetPosition(Vector(0.0, 0.0, 0.0)); // X=0, Y=0, Z=0
-    } else {
+    // ノードごとに位置を設定
+    for (uint32_t i = 0; i < nodes.GetN(); ++i)
+    {
+    Ptr<MobilityModel> mobilityModel = nodes.Get(i)->GetObject<MobilityModel>();
+    if (i==0)
+    {
+        // ノードごとに位置を決定
+        double x = 20; // X座標 
+        double y = 20; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力
+    }else if(i==1){
+        // ノードごとに位置を決定
+        double x = 40; // X座標 
+        double y = 40; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力
+    }else if(i==2){
+        // ノードごとに位置を決定
+        double x = 40; // X座標 
+        double y = 80; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力
+    }else if(i==3){
+        // ノードごとに位置を決定
+        double x = 80; // X座標 
+        double y = 40; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
+    }else if(i==4){
+        // ノードごとに位置を決定
+        double x = 80; // X座標 
+        double y = 80; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
+    }else if(i==5){
+        // ノードごとに位置を決定
+        double x = 110; // X座標 
+        double y = 110; // Y座標 
+        mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
+        std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
+    }
     }
 
-    // 最後のノードを右下に配置
-    uint32_t lastNodeIndex = nodes.GetN() - 1;
-    Ptr<MobilityModel> mobilityLast = nodes.Get(lastNodeIndex)->GetObject<MobilityModel>();
-    if (mobilityLast) {
-        mobilityLast->SetPosition(Vector(40.0, 40.0, 0.0)); // X=50, Y=50, Z=0
-    } else {
-    }
+    // MobilityHelper mobility;
+    // mobility.SetPositionAllocator("ns3::RandomRectanglePositionAllocator", // 位置はランダム
+    //                               "X", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"),
+    //                               "Y", StringValue("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"));
+
+    // mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
+    // mobility.Install(nodes); // 全ノードに適用
+
+    // // 最初のノードを左上に配置
+    // Ptr<MobilityModel> mobility0 = nodes.Get(0)->GetObject<MobilityModel>();
+    // if (mobility0) {
+    //     mobility0->SetPosition(Vector(0.0, 0.0, 0.0)); // X=0, Y=0, Z=0
+    // } else {
+    // }
+
+    // // 最後のノードを右下に配置
+    // uint32_t lastNodeIndex = nodes.GetN() - 1;
+    // Ptr<MobilityModel> mobilityLast = nodes.Get(lastNodeIndex)->GetObject<MobilityModel>();
+    // if (mobilityLast) {
+    //     mobilityLast->SetPosition(Vector(40.0, 40.0, 0.0)); // X=50, Y=50, Z=0
+    // } else {
+    // }
 }
 
 void
@@ -277,7 +325,9 @@ AodvExample::InstallInternetStack()                 // インターネットス�
     {
         Ptr<OutputStreamWrapper> routingStream =
             Create<OutputStreamWrapper>("aodv.routes", std::ios::out);
-        Ipv4RoutingHelper::PrintRoutingTableAllAt(Seconds(8), routingStream);
+        Ipv4RoutingHelper::PrintRoutingTableAllAt(Seconds(5), routingStream);
+        Ipv4RoutingHelper::PrintRoutingTableAllAt(Seconds(50), routingStream);
+        Ipv4RoutingHelper::PrintRoutingTableAllAt(Seconds(100), routingStream);
     }
 }
 
@@ -290,8 +340,8 @@ AodvExample::InstallApplications()
     serverApps.Stop(Seconds(totalTime));        // サーバを停止
 
     UdpEchoClientHelper echoClient(interfaces.GetAddress(size - 1), 9); // サーバのアドレスとポート番号を指定
-    echoClient.SetAttribute("MaxPackets", UintegerValue(20)); // 送信パケット数
-    echoClient.SetAttribute("Interval", TimeValue(Seconds(2.0))); // パケット送信間隔
+    echoClient.SetAttribute("MaxPackets", UintegerValue(100)); // 送信パケット数
+    echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0))); // パケット送信間隔
     echoClient.SetAttribute("PacketSize", UintegerValue(1024)); // パケットサイズを設定
 
     ApplicationContainer clientApps = echoClient.Install(nodes.Get(0)); // 最初のノードにクライアントを配置
@@ -312,6 +362,10 @@ AodvExample::InstallEnergyModels()
 
         // 初期エネルギーを設定（例: 10ジュール）
         energySource->SetInitialEnergy(50.0);
+        if (node->GetId() == 2)
+        {
+            energySource->SetInitialEnergy(30.0);
+        }
         node->AggregateObject(energySource);
 
         // Wi-Fiエネルギーモデルの作成
@@ -320,13 +374,13 @@ AodvExample::InstallEnergyModels()
         energySource->AppendDeviceEnergyModel(energyModel);
 
          // 消費電力 (A) を設定
-        energyModel->SetAttribute("TxCurrentA", DoubleValue(0.1));  // 送信時
-        energyModel->SetAttribute("RxCurrentA", DoubleValue(0.1));  // 受信時
+        energyModel->SetAttribute("TxCurrentA", DoubleValue(0.5));  // 送信時
+        energyModel->SetAttribute("RxCurrentA", DoubleValue(0.5));  // 受信時
         energyModel->SetAttribute("IdleCurrentA", DoubleValue(0.01)); // 待機時
         energyModel->SetAttribute("SleepCurrentA", DoubleValue(0.001)); // スリープ時
 
         // エネルギー枯渇時のコールバックを設定
-        // energySource->TraceConnectWithoutContext("RemainingEnergy", MakeCallback(&AodvExample::OnEnergyDepleted,this));
+        energySource->TraceConnectWithoutContext("RemainingEnergy", MakeCallback(&AodvExample::OnEnergyDepleted,this));
 
         NS_LOG_UNCOND("Node " << node->GetId() << " initial energy: " << energySource->GetInitialEnergy() << " J");
     }

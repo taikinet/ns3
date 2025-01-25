@@ -1103,12 +1103,13 @@ double RoutingProtocol::GetDatarate() {
 
 // M値を計算する(delayをint型に変換するためにdelay.GetMillSeconds()を使用)
 double RoutingProtocol::CaluculateM(double band, Time delay, double E) {
-    std::cout << "band: " << band  << "delay:" << delay << "E:" << E << std::endl;
     Time current = Simulator::Now();
     double currenttime = current.GetMilliSeconds();
     double delaytime = delay.GetMilliSeconds();
+    if(delaytime == 0){
+        return 0;
+    }
     double M = 0.3*(band/600) + 0.2*((1-(delaytime/currenttime)))/currenttime + 0.5*(E/100.0);
-    std::cout << "M: " << M << std::endl;
     return M;
 }
 
@@ -1423,6 +1424,13 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     RreqHeader rreqHeader;
     p->RemoveHeader(rreqHeader);
 
+    if(IsMyOwnAddress(rreqHeader.GetOrigin()))
+    {
+        NS_LOG_DEBUG("Ignoring RREQ from myself");
+        std::cout<<"自分からのRREQを無視"<<std::endl;
+        return;
+    }
+
     // A node ignores all RREQs received from any node in its blacklist
     RoutingTableEntry toPrev;
     if (m_routingTable.LookupRoute(src, toPrev))
@@ -1445,7 +1453,8 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     if (m_rreqIdCache.IsDuplicate(origin, id))
     {
         NS_LOG_DEBUG("Ignoring RREQ due to duplicate");
-        // return;
+        std::cout<<"重複したRREQを無視"<<std::endl;
+        //return;
     }
 
 
@@ -1486,6 +1495,7 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     // ルーティングテーブルに逆引きルートがない場合
     if (!m_routingTable.LookupRoute(origin, toOrigin))
     {
+        std::cout << "ルーティングテーブルに逆引きルートがない" << std::endl;
         Ptr<NetDevice> dev = m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver));
         RoutingTableEntry newEntry(
             /*dev=*/dev,
@@ -1511,12 +1521,13 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
         Time d = toOrigin.GetDelay();
         double e = toOrigin.GetE();
         double m = CaluculateM(b, d, e);
+        std::cout << "ルーティングテーブルから取得したm: " << m << std::endl;
         // ValidなシークエンスNo.が存在する時
         if (toOrigin.GetValidSeqNo())
         {
             if (int32_t(rreqHeader.GetOriginSeqno()) - int32_t(toOrigin.GetSeqNo()) > 0)
             {
-                std::cout << "Not Seq changed " << std::endl;
+                std::cout << "Seq changed " << toOrigin.GetSeqNo() << "to" << rreqHeader.GetOriginSeqno() << std::endl;
                 toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                 toOrigin.SetValidSeqNo(true);
                 toOrigin.SetNextHop(src);
@@ -1536,7 +1547,6 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                 if (hop < uint8_t(toOrigin.GetHop()))
                 {
                     std::cout << "Hop < hop" << std::endl;
-                    toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                     toOrigin.SetValidSeqNo(true);
                     toOrigin.SetNextHop(src);
                     toOrigin.SetOutputDevice(m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver)));
@@ -1558,7 +1568,6 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                     if (M > m)
                     {
                         std::cout << "M > m" << std::endl;
-                        toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                         toOrigin.SetValidSeqNo(true);
                         toOrigin.SetNextHop(src);
                         toOrigin.SetOutputDevice(m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver)));
@@ -1570,13 +1579,21 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                         toOrigin.SetDelay(delay);
                         toOrigin.SetE(E);
                         m_routingTable.Update(toOrigin);
+                    }else{
+                        return;
                     }
+                }else{
+                    std::cout << "ホップ数が大きいやつを取得" << std::endl;
+                    return;
                 }
+            }else{
+                std::cout << "シーケンス番号が小さいやつを取得" << std::endl;
+                return;
             }
         }
         // ValidなシークエンスNo.が存在しない場合
         else
-        {
+        {   std::cout << "Not valid seq" << std::endl;
             toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
             toOrigin.SetValidSeqNo(true);
             toOrigin.SetNextHop(src);
@@ -1592,9 +1609,11 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
         }
         // このノードのQoSパラメータを比較し、ヘッダーのものより小さい場合は更新
         if(dr>x){
+            std::cout << "dr > x" << std::endl;
             rreqHeader.SetBandwidth(x);
         }
         if(E>y){
+            std::cout << "E > y" << std::endl;
             rreqHeader.SetE(y);
         }
         // toOrigin.SetValidSeqNo(true);
