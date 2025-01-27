@@ -1564,7 +1564,9 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                     std::cout <<"逆引きルーティングテーブルから取得"<< "b: " << b << "d: " << d.GetMilliSeconds() << "e: " << e << std::endl;
                     std::cout << "Hop == hop" << std::endl;
                     std::cout << "M(H): " << M << std::endl;
+                    std::cout << "バンド幅: " << dr << "delay:"<< delay << "ノード生存性:"<< E << std::endl;
                     std::cout << "m(rt): " << m << std::endl;
+                    std::cout << "バンド幅: " << b << "delay:"<< d << "ノード生存性:"<< e << std::endl;
                     if (M > m)
                     {
                         std::cout << "M > m" << std::endl;
@@ -1921,7 +1923,7 @@ RoutingProtocol::RecvReply(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address send
 
             // (iv) the sequence numbers are the same, and the New Hop Count is smaller than the
             // hop count in route table entry.
-            (rrepHeader.GetDstSeqno() == toDst.GetSeqNo() && hop < toDst.GetHop()))
+            (rrepHeader.GetDstSeqno() == toDst.GetSeqNo() && hop <= toDst.GetHop()))
         {
             m_routingTable.Update(newEntry);
         }
@@ -1940,13 +1942,15 @@ RoutingProtocol::RecvReply(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address send
     }
     NS_LOG_LOGIC("receiver " << receiver << " origin " << rrepHeader.GetOrigin());
     if (IsMyOwnAddress(rrepHeader.GetOrigin()))
-    {
+    {   
+        // changed point
         if (toDst.GetFlag() == IN_SEARCH)
         {
             m_routingTable.Update(newEntry);
             m_addressReqTimer[dst].Cancel();
             m_addressReqTimer.erase(dst);
         }
+
         m_routingTable.LookupRoute(dst, toDst);
         SendPacketFromQueue(dst, toDst.GetRoute());
         return;
