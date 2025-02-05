@@ -174,7 +174,8 @@ RoutingProtocol::RoutingProtocol()
       m_htimer(Timer::CANCEL_ON_DESTROY),
       m_rreqRateLimitTimer(Timer::CANCEL_ON_DESTROY),
       m_rerrRateLimitTimer(Timer::CANCEL_ON_DESTROY),
-      m_lastBcastTime(Seconds(0))
+      m_lastBcastTime(Seconds(0)),
+      a(0.1)
 {
     m_nb.SetCallback(MakeCallback(&RoutingProtocol::SendRerrWhenBreaksLinkToNextHop, this));
 }
@@ -1090,26 +1091,34 @@ double RoutingProtocol::GetDatarate() {
     // Wi-Fi物理層の設定を取得
     Ptr<WifiPhy> phy = wifiDevice->GetPhy();
     uint32_t frequency = phy->GetChannelWidth(); // 帯域幅を取得 (MHz単位)
-    std::cout << "Node " << nodeId << " Frequency: " << frequency << " MHz" << std::endl;
 
     // 実際のデータレートを算出
     Ptr<WifiRemoteStationManager> manager = wifiDevice->GetRemoteStationManager();
     WifiMode mode = manager->GetDefaultMode();
     uint32_t dataRate = mode.GetDataRate(frequency) / 1e6; // 周波数を指定してデータレートを取得
-    std::cout << "Node " << nodeId << " DataRate: " << dataRate << " Mbps" << std::endl;
 
     return dataRate;
 }
 
+// // M値を計算する(delayをint型に変換するためにdelay.GetMillSeconds()を使用)
+// double RoutingProtocol::CaluculateM(double band, Time delay, double E) {
+//     Time current = Simulator::Now();
+//     double delaytime = delay.GetMilliSeconds();
+//     if(delaytime == 0){
+//         return 0;
+//     }
+//     double M = 0.1*(band/24) + 0.5*(1-(delaytime/m_netTraversalTime.GetMilliSeconds())) + 0.4*(E/10.0);
+//     return M;
+// }
+
 // M値を計算する(delayをint型に変換するためにdelay.GetMillSeconds()を使用)
 double RoutingProtocol::CaluculateM(double band, Time delay, double E) {
     Time current = Simulator::Now();
-    double currenttime = current.GetMilliSeconds();
     double delaytime = delay.GetMilliSeconds();
     if(delaytime == 0){
         return 0;
     }
-    double M = 0.3*(band/600) + 0.2*((1-(delaytime/currenttime)))/currenttime + 0.5*(E/100.0);
+    double M = 0.1*(band/24) + (0.9-a)*(1-(delaytime/m_netTraversalTime.GetMilliSeconds())) + a*(E/10.0);
     return M;
 }
 
@@ -1143,7 +1152,6 @@ RoutingProtocol::SendRequest(Ipv4Address dst)
     // changed point
     double bandwidth = GetDatarate();
     double E = CaluculateE(GetNeighborCount(), GetRemainingBattery());
-    std::cout << "やべー " << E << std::endl;
     Time delay = Simulator::Now();
     rreqHeader.SetBandwidth(bandwidth);
     rreqHeader.SetDelay(delay);
@@ -1427,7 +1435,6 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     if(IsMyOwnAddress(rreqHeader.GetOrigin()))
     {
         NS_LOG_DEBUG("Ignoring RREQ from myself");
-        std::cout<<"自分からのRREQを無視"<<std::endl;
         return;
     }
 
@@ -1453,7 +1460,6 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     if (m_rreqIdCache.IsDuplicate(origin, id))
     {
         NS_LOG_DEBUG("Ignoring RREQ due to duplicate");
-        std::cout<<"重複したRREQを無視"<<std::endl;
         //return;
     }
 
@@ -1466,13 +1472,11 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     double dr = rreqHeader.GetBandwidth();
     Time delay = Simulator::Now()-rreqHeader.GetDelay();
     double E = rreqHeader.GetE();
-    std::cout<<"ヘッダー  E:"<<E<<" delay:"<<delay<<" band:"<<dr<<std::endl;
     double M = CaluculateM(dr, delay, E);     // ヘッダーからのQoSパラメータを取得
 
     // 自身のQoS情報を取得
     double x = GetDatarate();               // データレートを取得
     double y = CaluculateE(GetNeighborCount(), GetRemainingBattery());  // バッテリー残量を取得
-    std::cout<<"自身のQoS情報"<<y<<","<< GetRemainingBattery()<<","<<GetNeighborCount()<<std::endl;
 
     /*
      *  When the reverse route is created or updated, the following actions on the route are also
@@ -1495,7 +1499,6 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
     // ルーティングテーブルに逆引きルートがない場合
     if (!m_routingTable.LookupRoute(origin, toOrigin))
     {
-        std::cout << "ルーティングテーブルに逆引きルートがない" << std::endl;
         Ptr<NetDevice> dev = m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver));
         RoutingTableEntry newEntry(
             /*dev=*/dev,
@@ -1521,13 +1524,11 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
         Time d = toOrigin.GetDelay();
         double e = toOrigin.GetE();
         double m = CaluculateM(b, d, e);
-        std::cout << "ルーティングテーブルから取得したm: " << m << std::endl;
         // ValidなシークエンスNo.が存在する時
         if (toOrigin.GetValidSeqNo())
         {
             if (int32_t(rreqHeader.GetOriginSeqno()) - int32_t(toOrigin.GetSeqNo()) > 0)
             {
-                std::cout << "Seq changed " << toOrigin.GetSeqNo() << "to" << rreqHeader.GetOriginSeqno() << std::endl;
                 toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
                 toOrigin.SetValidSeqNo(true);
                 toOrigin.SetNextHop(src);
@@ -1543,10 +1544,8 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
             }
             else if (int32_t(rreqHeader.GetOriginSeqno()) - int32_t(toOrigin.GetSeqNo()) == 0)
             {   
-                std::cout << "Seq equal " << std::endl;
                 if (hop < uint8_t(toOrigin.GetHop()))
                 {
-                    std::cout << "Hop < hop" << std::endl;
                     toOrigin.SetValidSeqNo(true);
                     toOrigin.SetNextHop(src);
                     toOrigin.SetOutputDevice(m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver)));
@@ -1561,15 +1560,8 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                 }
                 else if (hop == uint8_t(toOrigin.GetHop()))
                 {
-                    std::cout <<"逆引きルーティングテーブルから取得"<< "b: " << b << "d: " << d.GetMilliSeconds() << "e: " << e << std::endl;
-                    std::cout << "Hop == hop" << std::endl;
-                    std::cout << "M(H): " << M << std::endl;
-                    std::cout << "バンド幅: " << dr << "delay:"<< delay << "ノード生存性:"<< E << std::endl;
-                    std::cout << "m(rt): " << m << std::endl;
-                    std::cout << "バンド幅: " << b << "delay:"<< d << "ノード生存性:"<< e << std::endl;
                     if (M > m)
                     {
-                        std::cout << "M > m" << std::endl;
                         toOrigin.SetValidSeqNo(true);
                         toOrigin.SetNextHop(src);
                         toOrigin.SetOutputDevice(m_ipv4->GetNetDevice(m_ipv4->GetInterfaceForAddress(receiver)));
@@ -1585,17 +1577,15 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
                         return;
                     }
                 }else{
-                    std::cout << "ホップ数が大きいやつを取得" << std::endl;
                     return;
                 }
             }else{
-                std::cout << "シーケンス番号が小さいやつを取得" << std::endl;
                 return;
             }
         }
         // ValidなシークエンスNo.が存在しない場合
         else
-        {   std::cout << "Not valid seq" << std::endl;
+        {   
             toOrigin.SetSeqNo(rreqHeader.GetOriginSeqno());
             toOrigin.SetValidSeqNo(true);
             toOrigin.SetNextHop(src);
@@ -1611,11 +1601,9 @@ RoutingProtocol::RecvRequest(Ptr<Packet> p, Ipv4Address receiver, Ipv4Address sr
         }
         // このノードのQoSパラメータを比較し、ヘッダーのものより小さい場合は更新
         if(dr>x){
-            std::cout << "dr > x" << std::endl;
             rreqHeader.SetBandwidth(x);
         }
         if(E>y){
-            std::cout << "E > y" << std::endl;
             rreqHeader.SetE(y);
         }
         // toOrigin.SetValidSeqNo(true);
@@ -2274,13 +2262,6 @@ RoutingProtocol::SendPacketFromQueue(Ipv4Address dst, Ptr<Ipv4Route> route)
 void
 RoutingProtocol::SendRerrWhenBreaksLinkToNextHop(Ipv4Address nextHop)
 {
-
-    if (m_firstRerrTime.IsZero()) // 初めてのRERR送信の場合のみ
-    {
-        m_firstRerrTime = Simulator::Now();
-        NS_LOG_UNCOND("Node " << m_ipv4->GetObject<Node>()->GetId() << " first sent RERR at time " << m_firstRerrTime.GetSeconds() << " seconds");
-    }
-
     NS_LOG_FUNCTION(this << nextHop);
     RerrHeader rerrHeader;
     std::vector<Ipv4Address> precursors;

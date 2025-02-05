@@ -204,6 +204,16 @@ class RoutingProtocol : public Ipv4RoutingProtocol
 
     double CaluculateM(double a, Time b, double c);  // Mを計算する
 
+    double Geta(){
+        return a;
+    }
+
+    void Seta(double q){
+        a = q;
+    }
+
+
+
   protected:
     void DoInitialize() override;
 
@@ -505,6 +515,8 @@ class RoutingProtocol : public Ipv4RoutingProtocol
     Ptr<UniformRandomVariable> m_uniformRandomVariable;
     /// Keep track of the last bcast time
     Time m_lastBcastTime;
+
+    double a;
 };
 
 } // namespace aodv

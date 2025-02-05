@@ -193,8 +193,8 @@ AodvExample::CreateNodes()  // ノードを作成
     if (i==0)
     {
         // ノードごとに位置を決定
-        double x = 20; // X座標 
-        double y = 20; // Y座標 
+        double x = 15; // X座標 
+        double y = 15; // Y座標 
         mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
         std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力
     }else if(i==1){
@@ -206,25 +206,25 @@ AodvExample::CreateNodes()  // ノードを作成
     }else if(i==2){
         // ノードごとに位置を決定
         double x = 40; // X座標 
-        double y = 80; // Y座標 
+        double y = 90; // Y座標 
         mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
         std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力
     }else if(i==3){
         // ノードごとに位置を決定
-        double x = 80; // X座標 
+        double x = 90; // X座標 
         double y = 40; // Y座標 
         mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
         std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
     }else if(i==4){
         // ノードごとに位置を決定
-        double x = 80; // X座標 
-        double y = 80; // Y座標 
+        double x = 90; // X座標 
+        double y = 90; // Y座標 
         mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
         std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
     }else if(i==5){
         // ノードごとに位置を決定
-        double x = 110; // X座標 
-        double y = 110; // Y座標 
+        double x = 120; // X座標 
+        double y = 120; // Y座標 
         mobilityModel->SetPosition(Vector(x, y, 0.0)); // Z座標は0で固定
         std::cout << "Node " << i << " position: " << x << ", " << y << "\n"; // 位置を出力}
     }
@@ -341,7 +341,7 @@ AodvExample::InstallApplications()
 
     UdpEchoClientHelper echoClient(interfaces.GetAddress(size - 1), 9); // サーバのアドレスとポート番号を指定
     echoClient.SetAttribute("MaxPackets", UintegerValue(100)); // 送信パケット数
-    echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0))); // パケット送信間隔
+    echoClient.SetAttribute("Interval", TimeValue(Seconds(0.5))); // パケット送信間隔
     echoClient.SetAttribute("PacketSize", UintegerValue(1024)); // パケットサイズを設定
 
     ApplicationContainer clientApps = echoClient.Install(nodes.Get(0)); // 最初のノードにクライアントを配置
@@ -361,10 +361,10 @@ AodvExample::InstallEnergyModels()
         Ptr<energy::BasicEnergySource> energySource = CreateObject<energy::BasicEnergySource>();
 
         // 初期エネルギーを設定（例: 10ジュール）
-        energySource->SetInitialEnergy(50.0);
+        energySource->SetInitialEnergy(5.0);
         if (node->GetId() == 2)
         {
-            energySource->SetInitialEnergy(30.0);
+            energySource->SetInitialEnergy(1.0);
         }
         node->AggregateObject(energySource);
 
@@ -374,8 +374,8 @@ AodvExample::InstallEnergyModels()
         energySource->AppendDeviceEnergyModel(energyModel);
 
          // 消費電力 (A) を設定
-        energyModel->SetAttribute("TxCurrentA", DoubleValue(0.5));  // 送信時
-        energyModel->SetAttribute("RxCurrentA", DoubleValue(0.5));  // 受信時
+        energyModel->SetAttribute("TxCurrentA", DoubleValue(3.0));  // 送信時
+        energyModel->SetAttribute("RxCurrentA", DoubleValue(3.0));  // 受信時
         energyModel->SetAttribute("IdleCurrentA", DoubleValue(0.01)); // 待機時
         energyModel->SetAttribute("SleepCurrentA", DoubleValue(0.001)); // スリープ時
 
