@@ -865,6 +865,10 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 	{
 		flag = 2;
 	}
+        else if(sender==("192.168.1.60"))
+	{
+		flag = 3;
+	}
 	else{
 		flag = 0;
 	}
@@ -1267,7 +1271,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                         }
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
                 }
-                else if(nodeId == 45 || nodeId == 42){    // shinato-nagano
+                else if(nodeId == 45 || nodeId == 42 || nodeId == 60){    // shinato-nagano
                         HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, signature_POSliar);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
@@ -1451,7 +1455,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 {
         //shinato 転送しない悪意ノード
 	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 30 || not_foward == 71 || not_foward == 55 || not_foward == 45 || not_foward == 42)
+        if(not_foward == 30 || not_foward == 71 || not_foward == 55 || not_foward == 45 || not_foward == 42 || not_foward == 60)
 	{	
 		return true;
 	}

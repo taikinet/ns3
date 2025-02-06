@@ -831,6 +831,10 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 	{
 		flag = 2;
 	}
+        else if(sender==("192.168.1.60"))
+	{
+		flag = 3;
+	}
 	else{
 		flag = 0;
 	}
@@ -1313,7 +1317,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 {
         //shinato 転送しない悪意ノード
 	int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        if(not_foward == 30||not_foward == 55 || not_foward == 71 || not_foward == 45 || not_foward == 42)
+        if(not_foward == 30||not_foward == 55 || not_foward == 71 || not_foward == 45 || not_foward == 42 || not_foward == 60)
 	{	
 		return true;
 	}
