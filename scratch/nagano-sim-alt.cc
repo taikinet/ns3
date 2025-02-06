@@ -709,7 +709,7 @@ VanetRoutingExperiment::RunFlowMonitor()
             //rxBytesはこのフローの受信バイトの合計数,timeLastRxPacketはフローで最後のパケットが受信されたときの時間
             //timeFirstTxPacketはフローで最初のパケットが送信された時の時間
             //throughput=受信パケットのバイト数 *8.0/通信時間/1024
-            sumThroughput+= throughput;//スループットの合計
+            sumThroughput += throughput;//スループットの合計
             sumTxBytes += i->second.txBytes;//txBytesはこのフローの送信バイトの合計数,
             sumRxBytes += i->second.rxBytes;//rxBytesはこのフローの受信バイトの合計数
             sumTimesForwarded += i->second.timesForwarded;//転送回数の合計(ホップ数の合計)
