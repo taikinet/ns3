@@ -714,17 +714,21 @@ RoutingProtocol::UpdateRouteToNeighbor (Ipv4Address sender, Ipv4Address receiver
 {
 	uint32_t flag = 0;
 	
-	/*if(sender==("192.168.1.24"))//位置情報を変えるノード(192.168.1.nodeId+1)
-	{
-		flag = 0;
-	}
-	else if(sender==("192.168.1.29"))
-	{
-		flag = 0;
-	}	
-	else{
-		flag = 0;
-	}*/
+	// if(sender==("192.168.1.42"))//位置情報を変えるノード(192.168.1.nodeId+1)
+	// {
+	// 	flag = 1;
+	// }
+	// else if(sender==("192.168.1.45"))
+	// {
+	// 	flag = 2;
+	// }
+        // else if(sender==("192.168.1.60"))
+	// {
+	// 	flag = 3;
+	// }
+	// else{
+	// 	flag = 0;
+	// }
 	m_neighbors.AddEntry (sender, Pos, flag);
         
 }
@@ -1071,7 +1075,7 @@ RoutingProtocol::Forwarding (Ptr<const Packet> packet, const Ipv4Header & header
 {
         //shinato 転送しない悪意ノード
 	// int not_foward = m_ipv4->GetObject<Node> ()->GetId ();
-        // if(not_foward == 200||not_foward ==250)
+        // if(not_foward == 30 ||not_foward == 71 ||not_foward == 55 || not_foward == 45 || not_foward == 42 || not_foward == 60)
 	// {	
 	// 	return true;
 	// }

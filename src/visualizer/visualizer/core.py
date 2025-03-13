@@ -978,7 +978,7 @@ class Visualizer(gobject.GObject):
             
             #shinato
             #line_width = max(0.1,math.log(float(rx_bytes)/rx_count/self.sample_period)*k)
-            if 16>math.log(float(rx_bytes)/rx_count/self.sample_period)*k:
+            if 16>math.log(float(rx_bytes)/rx_count/self.sample_period)*k:  # なんかの通信指標
                 line_width = 5
                 stroke_color_rgba=0x0000C0C0
             else:

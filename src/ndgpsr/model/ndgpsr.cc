@@ -1026,10 +1026,11 @@ RoutingProtocol::SetIpv4 (Ptr<Ipv4> ipv4)
         Simulator::ScheduleNow (&RoutingProtocol::Start, this);
 }
 
+// taiki 
 void
 RoutingProtocol::HelloTimerExpire ()
 {
-        // 鍵の取得
+        // 鍵の取得 シナリオファイルで生成した
         EVP_PKEY* edKey_ip = GetDsaParameterIP();
         EVP_PKEY* edKey_pos = GetDsaParameterPOS();
         // 署名のコンテキスト作成と初期化(IP)

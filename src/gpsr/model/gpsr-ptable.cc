@@ -42,53 +42,77 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 {
 		std::map<Ipv4Address, Metrix >::iterator i = m_table.find (id);
 		//shinato
-		if(flag == 1)
-		{	
-			if (i != m_table.end () || id.IsEqual (i->first))
-			{
-				m_table.erase (id);
+		// if(flag == 1)
+		// {	
+		// 	if (i != m_table.end () || id.IsEqual (i->first))
+		// 	{
+		// 		m_table.erase (id);
 				
-				Metrix metrix;
-				//position.x=765;//宛先ノード近い
-				position.y=700;
-				metrix.position=position;
-				metrix.time=Simulator::Now ();
-				m_table.insert (std::make_pair (id, metrix));
-				return; //返さないとと後の処理ができない
-			}
-			//IDがテーブルにないとき、IDを追加
-			Metrix metrix;
-			position.x=700;//宛先ノード近い
+		// 		Metrix metrix;
+		// 		position.x=1800;//宛先ノード近い
+		// 		position.y=2250;
+		// 		metrix.position=position;
+		// 		metrix.time=Simulator::Now ();
+		// 		m_table.insert (std::make_pair (id, metrix));
+		// 		return; //返さないとと後の処理ができない
+		// 	}
+		// 	//IDがテーブルにないとき、IDを追加
+		// 	Metrix metrix;
+		// 	position.x=1800;//宛先ノード近い
+		// 	position.y=2250;
 			
-			metrix.position=position;
-			metrix.time=Simulator::Now ();
-			m_table.insert (std::make_pair (id, metrix));
-			return;
-		}
-		else if(flag == 2)
-		{	
-			if (i != m_table.end () || id.IsEqual (i->first))
-			{
-				m_table.erase (id);
+		// 	metrix.position=position;
+		// 	metrix.time=Simulator::Now ();
+		// 	m_table.insert (std::make_pair (id, metrix));
+		// 	return;
+		// }
+		// else if(flag == 2)
+		// {	
+		// 	if (i != m_table.end () || id.IsEqual (i->first))
+		// 	{
+		// 		m_table.erase (id);
 				
-				Metrix metrix;
-				position.x=1790;//宛先ノード近い
-				position.y=790;
-				metrix.position=position;
-				metrix.time=Simulator::Now ();
-				m_table.insert (std::make_pair (id, metrix));
-				return; //返さないとと後の処理ができない
-			}
-			//IDがテーブルにないとき、IDを追加
-			Metrix metrix;
-			position.x=1790;//宛先ノード近い
-			position.y=790;
-			metrix.position=position;
-			metrix.time=Simulator::Now ();
-			m_table.insert (std::make_pair (id, metrix));
-			return;
-		}
-		else{
+		// 		Metrix metrix;
+		// 		position.x=2320;//宛先ノード近い
+		// 		position.y=1900;
+		// 		metrix.position=position;
+		// 		metrix.time=Simulator::Now ();
+		// 		m_table.insert (std::make_pair (id, metrix));
+		// 		return; //返さないとと後の処理ができない
+		// 	}
+		// 	//IDがテーブルにないとき、IDを追加
+		// 	Metrix metrix;
+		// 	position.x=2320;//宛先ノード近い
+		// 	position.y=1900;
+		// 	metrix.position=position;
+		// 	metrix.time=Simulator::Now ();
+		// 	m_table.insert (std::make_pair (id, metrix));
+		// 	return;
+		// }
+                // else if(flag == 3)
+		// {	
+		// 	if (i != m_table.end () || id.IsEqual (i->first))
+		// 	{
+		// 		m_table.erase (id);
+				
+		// 		Metrix metrix;
+		// 		position.x=1920;//宛先ノード近い
+		// 		position.y=2100;
+		// 		metrix.position=position;
+		// 		metrix.time=Simulator::Now ();
+		// 		m_table.insert (std::make_pair (id, metrix));
+		// 		return; //返さないとと後の処理ができない
+		// 	}
+		// 	//IDがテーブルにないとき、IDを追加
+		// 	Metrix metrix;
+		// 	position.x=1920;//宛先ノード近い
+		// 	position.y=2100;
+		// 	metrix.position=position;
+		// 	metrix.time=Simulator::Now ();
+		// 	m_table.insert (std::make_pair (id, metrix));
+		// 	return;
+		// }
+		// else{
 			//テーブルのID、テーブルの更新、位置と速度の情報の追加
 			if (i != m_table.end () || id.IsEqual (i->first))
 			{
@@ -106,7 +130,7 @@ PositionTable::AddEntry (Ipv4Address id, Vector position, uint32_t flag)
 			metrix.time=Simulator::Now ();
 			m_table.insert (std::make_pair (id, metrix));
 			return;
-		}
+		// }
 }
 /**
  * \brief Deletes entry in position table

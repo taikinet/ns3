@@ -76,6 +76,8 @@ WifiPhyStats::GetPhyTxBytes () // 外部参照の際のメソッド
   return m_phyTxBytes;
 }
 
+//ここから
+
 class RoutingHelper : public Object // 宣言。　Objectを継承
 {
 public:
@@ -199,10 +201,10 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     internet.SetRoutingHelper (list);
     internet.Install(c);
   }
-  else if(m_protocolName=="NPGPSR"){
+  else if(m_protocolName=="NPGPSR"){  // ecdsaの署名付きプロトコル
     //ECDSA
     //鍵生成（IP)
-    EC_KEY* ecKey_ip = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成　IPアドレスに関するECキー
+    EC_KEY* ecKey_ip = EC_KEY_new_by_curve_name(NID_secp256k1);//ECキー生成　IPアドレスに関するECキー　IPの公開鍵と秘密鍵のペア
     if (ecKey_ip == nullptr)
     {
       std::cerr << "Failed to create EC key" << std::endl;
@@ -222,17 +224,16 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
 
-    npgpsr.SetDsaParameterIP(ecKey_ip); //IPアドレス署名用のパラメーター
-    npgpsr.SetDsaParameterPOS(ecKey_pos);
-    npgpsr.Settracefile(m_traceFile);
+    npgpsr.SetDsaParameterIP(ecKey_ip); // IPアドレス署名用のパラメーター
+    npgpsr.SetDsaParameterPOS(ecKey_pos); // 位置情報署名用のパラメーター
+    npgpsr.Settracefile(m_traceFile);   // トレース
 
-    list.Add (npgpsr, 100);
-    internet.SetRoutingHelper (list);
+    list.Add (npgpsr, 100); // インターフェース
+    internet.SetRoutingHelper (list); // 
     internet.Install(c);
 
   }
-  else if(m_protocolName=="NGPSR"){//DSA署名付きのGPSR
-
+  else if(m_protocolName=="NGPSR"){//DSA署名付きのGPSR　実行されない
     //DSA
     //鍵生成（IP)
     DSA* dsa_ip = DSA_new();
@@ -289,15 +290,17 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
     internet.SetRoutingHelper (list);//インストール時に使用するルーティングヘルパーを設定する
     internet.Install(c);//各ノードに(Ipv4,Ipv6,Udp,Tcp)クラスの実装を集約する
   }
-  else if(m_protocolName=="NDGPSR"){
+  else if(m_protocolName=="NDGPSR"){ // eddsaの署名付きプロトコル
     //EdDSA
     //鍵生成（IP)
-    EVP_PKEY_CTX* edCtx_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL); // 鍵を生成するためのコンテキスト
+    EVP_PKEY_CTX* edCtx_ip = EVP_PKEY_CTX_new_id(EVP_PKEY_ED25519, NULL); // 鍵を生成するためのコンテキスト　カスタマイズできる
     EVP_PKEY* edKey_ip = NULL; //Edキー生成　IPアドレスに関するEdキー
-    if (edCtx_ip == nullptr || EVP_PKEY_keygen_init(edCtx_ip) != 1) {
+
+    if (edCtx_ip == nullptr || EVP_PKEY_keygen_init(edCtx_ip) != 1) {   // 申請が通っているか
       std::cerr << "Failed to create Ed key context for IP" << std::endl;
     }
-    if (EVP_PKEY_keygen(edCtx_ip, &edKey_ip) != 1) { // 
+
+    if (EVP_PKEY_keygen(edCtx_ip, &edKey_ip) != 1) { // 鍵生成（鍵ペア）
       std::cerr << "Failed to generate Ed key pair" << std::endl;
     }
     EVP_PKEY_CTX_free(edCtx_ip); // メモリの解放
@@ -313,8 +316,9 @@ RoutingHelper::ConfigureRoutingProtocol (NodeContainer& c)
       std::cerr << "Failed to generate EC key pair" << std::endl;
     }
     EVP_PKEY_CTX_free(edCtx_pos);
+
     // 鍵の生成確認------------------------------------------------↓
-    if(m_comment){
+    if(m_comment){        // プログラム内でオンオフ
       std::cout << "EdDSA key pair generated" << std::endl;
       unsigned char pub_key[32]; // Ed25519 の公開鍵サイズは 32 バイト
       size_t pub_key_len = sizeof(pub_key);
@@ -351,7 +355,7 @@ RoutingHelper::ConfigureIPAddress (NetDeviceContainer& d, Ipv4InterfaceContainer
 	Ipv4AddressHelper ipv4;
 	ipv4.SetBase ("192.168.1.0", "255.255.255.0");
 	ic = ipv4.Assign (d);
-	}
+}
 
 
 void // 指定されたノードに対して送信と受信の通信設定を行う

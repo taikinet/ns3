@@ -13,3 +13,6 @@ https://www.nsnam.org/wiki/index.php/Installation
 Download code
 
 add GPSR dictoray to ns3/src dictory 
+
+
+gpsr for dsa 署名生成が正しくない　署名検証は同じことの繰り返し

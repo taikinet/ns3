@@ -13,3 +13,7 @@ https://www.nsnam.org/wiki/index.php/Installation
 Download code
 
 add GPSR dictoray to ns3/src dictory 
+
+署名検証なしのgpsrで
+ndgpsr が　eddsa
+npgpsr が　ecdsa
