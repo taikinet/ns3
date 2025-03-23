@@ -45,15 +45,15 @@ send_line_notification5() {
 start_time=`date +%s` 
 
 i=1 #loop
-r=1000 #実験回数   # ここいじる
+r=5 #実験回数   # ここいじる
 nodeCount=0
-simlationTime=0
+simulationTime=0
 send_line_notification1
 for traceFile in mobility112.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile == "mobility112.tcl" ]; then
 		nodeCount=74  
-		simulationTime=50 ### ここいじる
+		simulationTime=300 ### ここいじる
     # else [ $traceFile = "mobility37.tcl" ]; then
 	# 	nodeCount=37
 	# 	simulationTime=60    
@@ -64,7 +64,7 @@ do
 	# 	nodeCount=40
 	# 	simulationTime=50
 	fi
-	for protocol in GPSR NGPSR NPGPSR NDGPSR
+	for protocol in GPSR NPGPSR NDGPSR
 	do
 		mkdir -p ~/"Simulation/$traceFile/$protocol"
 		mkdir -p ~/"dataTemp"
@@ -103,6 +103,10 @@ MM=`expr ${SS} / 60` #分を計算
 SS=`expr ${SS} % 60` #秒を計算
 
 echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーションにかかった時間を　時:分:秒で表示する
+
+
+# LINE通知を送信
+send_line_notification4 $HH $MM $SS
 
 
 # LINE通知を送信
