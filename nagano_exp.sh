@@ -47,7 +47,7 @@ start_time=`date +%s`
 i=1 #loop
 r=5 #実験回数   # ここいじる
 nodeCount=0
-simlationTime=0
+simulationTime=0
 send_line_notification1
 for traceFile in mobility112.tcl # mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
@@ -120,7 +120,7 @@ echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーション
 # LINE通知を送信
 send_line_notification4 $HH $MM $SS
 
-for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl # ここいじる
+for traceFile in mobility112.tcl # mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl # ここいじる
 do
     send_line_notification5 $traceFile
 done
@@ -165,12 +165,12 @@ send_line_notification9() {
 start_time=`date +%s` 
 
 i=1 #loop
-r=250 #実験回数   # ここいじる
+r=5 #実験回数   # ここいじる
 nodeCount=0
 simlationTime=0
 send_line_notification1
 send_line_notification9 $branch
-for traceFile in mobility112_simTime=250.tcl mobility112_simTime=300.tcl # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+for traceFile in mobility112_simTime=300.tcl # mobility112_simTime=250.tcl mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile == "mobility112_simTime=250.tcl" ]; then
         fileName="mobility112.tcl"
@@ -182,7 +182,7 @@ do
 		simulationTime=300
     
 	fi
-	for protocol in GPSR NGPSR NPGPSR NDGPSR
+	for protocol in GPSR NPGPSR NDGPSR
 	do
 		mkdir -p ~/"Simulation_liar/$traceFile/$protocol"
 		mkdir -p ~/"dataTemp"
@@ -226,7 +226,7 @@ echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーション
 # LINE通知を送信
 send_line_notification4 $HH $MM $SS
 
-for traceFile in mobility112_simTime=250.tcl mobility112_simTime=300.tcl # ここいじる
+for traceFile in mobility112_simTime=300.tcl # ここいじる mobility112_simTime=250.tcl
 do
     send_line_notification8 $traceFile
 done
