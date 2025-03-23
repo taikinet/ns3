@@ -717,6 +717,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         HelloHeader hdr;
         packet->RemoveHeader (hdr);
         Vector Position;
+        uint32_t ipAdress = hdr.GetIp();
         Position.x = hdr.GetOriginPosx ();
         Position.y = hdr.GetOriginPosy ();
         InetSocketAddress inetSourceAddr = InetSocketAddress::ConvertFrom (sourceAddress);
@@ -726,7 +727,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
 // nagano-------------------------------------------------------------------------↓
         
         //Edキー生成
-        std::string protocolName = "NDGPSR";
+        // std::string protocolName = "NDGPSR";
         std::string traceFile = Gettracefile();
         EVP_PKEY* edKey = GetDsaParameterIP(); 
         EVP_PKEY* edKeypos = GetDsaParameterPOS();
@@ -794,8 +795,16 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
         //ハッシュ値
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        // SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+        std::string ipStr = std::to_string((ipAdress >> 24) & 0xFF) + "." +
+                std::to_string((ipAdress >> 16) & 0xFF) + "." +
+                std::to_string((ipAdress >> 8) & 0xFF) + "." +
+                std::to_string(ipAdress & 0xFF);
+
+        // std::cout<<"IPadress : "<<ipStr<<std::endl;
+        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
@@ -1120,9 +1129,17 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         auto startIp = std::chrono::high_resolution_clock::now();
 
         // 署名生成（IP）
-        std::string protocolName = "NDGPSR"; // IPアドレス代わり
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // std::string protocolName = "NDGPSR"; 
+        // unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        // SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        Ipv4Address Address = m_ipv4->GetAddress(1, 0).GetLocal();
+        uint32_t ip = Address.Get();
+        std::string ipStr = std::to_string((ip >> 24) & 0xFF) + "." +
+                std::to_string((ip >> 16) & 0xFF) + "." +
+                std::to_string((ip >> 8) & 0xFF) + "." +
+                std::to_string(ip & 0xFF);
+        unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
         signature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
         if (signature == nullptr) {
@@ -1252,7 +1269,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                 // shinato
                 // IP署名が正しくない(IP詐称)
                 if(nodeId == 30 || nodeId == 71 || nodeId == 55){  // shinato-nagano
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
                         TypeHeader tHeader (NDGPSRTYPE_HELLO);
@@ -1272,7 +1289,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
                 }
                 else if(nodeId == 45 || nodeId == 42 || nodeId == 60){    // shinato-nagano
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, signature_POSliar);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature, signature_POSliar);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
                         TypeHeader tHeader (NDGPSRTYPE_HELLO);
@@ -1292,7 +1309,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
                 }
                 else{
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
 
                         Ptr<Packet> packet = Create<Packet> ();
                         packet->AddHeader (helloHeader);

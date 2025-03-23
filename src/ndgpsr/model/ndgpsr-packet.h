@@ -70,7 +70,7 @@ class HelloHeader : public Header
 {
 public:
   /// c-tor
-  HelloHeader (uint64_t originPosx = 0, uint64_t originPosy = 0, unsigned char* signature = nullptr, unsigned char* possignature = nullptr);
+  HelloHeader (uint32_t ip = 0, uint64_t originPosx = 0, uint64_t originPosy = 0, unsigned char* signature = nullptr, unsigned char* possignature = nullptr);
 
   ///\name Header serialization/deserialization
   //\{
@@ -84,6 +84,14 @@ public:
 
   ///\name Fields
   //\{
+  void SetIp (uint32_t ip)
+  {
+    m_ip = ip;
+  }
+  uint32_t GetIp () const
+  {
+    return m_ip;
+  }
   void SetOriginPosx (uint64_t posx)
   {
     m_originPosx = posx;
@@ -124,6 +132,7 @@ public:
 
   bool operator== (HelloHeader const & o) const;
 private:
+  uint32_t          m_ip;
   uint64_t         m_originPosx;          ///< Originator Position x
   uint64_t         m_originPosy;          ///< Originator Position x
   unsigned char* m_signature;

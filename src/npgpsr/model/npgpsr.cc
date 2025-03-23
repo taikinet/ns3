@@ -717,6 +717,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         HelloHeader hdr;
         packet->RemoveHeader (hdr);
         Vector Position;
+        uint32_t ipAdress = hdr.GetIp();
         Position.x = hdr.GetOriginPosx ();
         Position.y = hdr.GetOriginPosy ();
         InetSocketAddress inetSourceAddr = InetSocketAddress::ConvertFrom (sourceAddress);
@@ -725,7 +726,7 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         NS_LOG_DEBUG("update position"<<Position.x<<Position.y );
         
         //ECキー生成
-        std::string protocolName = "NPGPSR";
+        // std::string protocolName = "NPGPSR";
         std::string traceFile = Gettracefile();
         EC_KEY* ecKey = GetDsaParameterIP();
         EC_KEY* ecKeypos = GetDsaParameterPOS();
@@ -738,8 +739,16 @@ RoutingProtocol::RecvNPGPSR (Ptr<Socket> socket)
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
         //ハッシュ値(IP)
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+         // SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+         unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+         std::string ipStr = std::to_string((ipAdress >> 24) & 0xFF) + "." +
+                 std::to_string((ipAdress >> 16) & 0xFF) + "." +
+                 std::to_string((ipAdress >> 8) & 0xFF) + "." +
+                 std::to_string(ipAdress & 0xFF);
+ 
+         std::cout<<"IPadress : "<<ipStr<<std::endl;
+         SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
         //署名検証
         if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1)//署名検証　成功時１
@@ -1023,6 +1032,13 @@ RoutingProtocol::SendHello ()
 
         EC_KEY* ecKey_ip = GetDsaParameterIP();
         EC_KEY* ecKey_pos = GetDsaParameterPOS();
+        Ipv4Address Address = m_ipv4->GetAddress(1, 0).GetLocal();
+        uint32_t ip = Address.Get();
+
+        std::string ipStr = std::to_string((ip >> 24) & 0xFF) + "." +
+                std::to_string((ip >> 16) & 0xFF) + "." +
+                std::to_string((ip >> 8) & 0xFF) + "." +
+                std::to_string(ip & 0xFF);
 
         //uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
 
@@ -1031,9 +1047,9 @@ RoutingProtocol::SendHello ()
         // 時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
         //署名生成（IP)
-        std::string protocolName = "NPGPSR";
+        // std::string protocolName = "NPGPSR";
         unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
         ECDSA_SIG* signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, ecKey_ip);//署名生成
         if (signature == nullptr)
         {
@@ -1114,7 +1130,7 @@ RoutingProtocol::SendHello ()
                 // shinato
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID取得
                 if(nodeId == 30 || nodeId == 55 || nodeId == 71){
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature_IPliar, possignature);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
                         TypeHeader tHeader (NPGPSRTYPE_HELLO);
@@ -1134,7 +1150,7 @@ RoutingProtocol::SendHello ()
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NPGPSR_PORT));
                 }
                 else if(nodeId == 23 || nodeId == 28){
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, signature_POSliar);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature, signature_POSliar);
                         Ptr<Packet> packet = Create<Packet> ();
 		        packet->AddHeader (helloHeader);
                         TypeHeader tHeader (NPGPSRTYPE_HELLO);
@@ -1154,7 +1170,7 @@ RoutingProtocol::SendHello ()
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NPGPSR_PORT));
                 }
                 else{
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
 
                         Ptr<Packet> packet = Create<Packet> ();
                         packet->AddHeader (helloHeader);
