@@ -114,8 +114,9 @@ operator<< (std::ostream & os, TypeHeader const & h)
 //-----------------------------------------------------------------------------
 // HELLO
 //-----------------------------------------------------------------------------
-HelloHeader::HelloHeader (uint64_t originPosx, uint64_t originPosy, unsigned char* signature, unsigned char* possignature)
-  : m_originPosx (originPosx),
+HelloHeader::HelloHeader (uint32_t ip, uint64_t originPosx, uint64_t originPosy, unsigned char* signature, unsigned char* possignature)
+  : m_ip(ip),
+    m_originPosx (originPosx),
     m_originPosy (originPosy),
     m_signature (signature),
     m_possignature (possignature),
@@ -156,7 +157,7 @@ HelloHeader::GetSerializedSize () const
   OPENSSL_free(sig_ptrpos);*/
 
   //return 16 + 4 + sig_len + 4 + sig_lenpos;
-  return 16 + (2*64);
+  return 16 + (2*64) + 4;
   //return 16;
 }
 
@@ -166,7 +167,7 @@ HelloHeader::Serialize (Buffer::Iterator i) const
 {
   NS_LOG_DEBUG ("Serialize X " << m_originPosx << " Y " << m_originPosy);
 
-
+  i.WriteHtonU32 (m_ip);
   i.WriteHtonU64 (m_originPosx);
   i.WriteHtonU64 (m_originPosy);
 
@@ -224,6 +225,7 @@ HelloHeader::Deserialize (Buffer::Iterator start)
 
   Buffer::Iterator i = start;
 
+  m_ip = i.ReadNtohU32 ();
   m_originPosx = i.ReadNtohU64 ();
   m_originPosy = i.ReadNtohU64 ();
 

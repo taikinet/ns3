@@ -716,6 +716,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
 
         HelloHeader hdr;
         packet->RemoveHeader (hdr);
+        uint32_t ipAdress = hdr.GetIp();
         Vector Position;
         Position.x = hdr.GetOriginPosx ();
         Position.y = hdr.GetOriginPosy ();
@@ -726,11 +727,11 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
 // nagano-------------------------------------------------------------------------↓
         
         //Edキー生成
-        std::string protocolName = "NDGPSR";
+        // std::string protocolName = "NDGPSR";
         std::string traceFile = Gettracefile();
         EVP_PKEY* edKey = GetDsaParameterIP(); 
         EVP_PKEY* edKeypos = GetDsaParameterPOS();
-
+        
         // 出力
         /* 
         if(m_comment){
@@ -752,7 +753,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();
                 std::cout << "Node" << nodeId << ": VeriSig : postionX is: " << Position.x << std::endl;
         }
-
+        
         //関数の定義-----------------------------------------------↓
         auto verify_signature = [](EVP_PKEY* key, const unsigned char* message, size_t message_len, const unsigned char* new_signature, size_t sig_len) -> bool {
                 EVP_MD_CTX* md_ctx = EVP_MD_CTX_new();
@@ -771,6 +772,7 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
                 return result;
         };
         // ---------------------------------------------------------↑
+
         // 出力--------------------------------------------------------↓
         if(m_comment){
                 std::cout << "Verification POS Signature is: " << std::endl;
@@ -794,8 +796,16 @@ RoutingProtocol::RecvNDGPSR (Ptr<Socket> socket)
         // ip時間計測開始
         auto startIp = std::chrono::high_resolution_clock::now();
         //ハッシュ値
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        // SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+        std::string ipStr = std::to_string((ipAdress >> 24) & 0xFF) + "." +
+                std::to_string((ipAdress >> 16) & 0xFF) + "." +
+                std::to_string((ipAdress >> 8) & 0xFF) + "." +
+                std::to_string(ipAdress & 0xFF);
+
+        // std::cout<<"IPadress : "<<ipStr<<std::endl;
+        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
         if (verify_signature(edKey, digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), 64))//署名検証　成功時１
         {
@@ -1117,9 +1127,18 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
         auto startIp = std::chrono::high_resolution_clock::now();
 
         // 署名生成（IP）
-        std::string protocolName = "NDGPSR";
-        unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
-        SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+        // std::string protocolName = "NDGPSR";
+        // unsigned char digest[SHA256_DIGEST_LENGTH];//ハッシュ値計算
+        // SHA256(reinterpret_cast<const unsigned char*>(protocolName.c_str()), protocolName.length(), digest);
+
+        Ipv4Address Address = m_ipv4->GetAddress(1, 0).GetLocal();
+        uint32_t ip = Address.Get();
+        std::string ipStr = std::to_string((ip >> 24) & 0xFF) + "." +
+                std::to_string((ip >> 16) & 0xFF) + "." +
+                std::to_string((ip >> 8) & 0xFF) + "." +
+                std::to_string(ip & 0xFF);
+        unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
         signature = reinterpret_cast<unsigned char*>(OPENSSL_malloc(sig_len));
         if (signature == nullptr) {
@@ -1287,7 +1306,7 @@ RoutingProtocol::SendHello (EVP_MD_CTX *md_ctx_ip, EVP_MD_CTX *md_ctx_pos, std::
                         socket->SendTo (packet, 0, InetSocketAddress (destination, NDGPSR_PORT));
                 }
                 else{*/
-                        HelloHeader helloHeader (((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
+                        HelloHeader helloHeader (ip, ((uint64_t) positionX),((uint64_t) positionY), signature, possignature);
 
                         Ptr<Packet> packet = Create<Packet> ();
                         packet->AddHeader (helloHeader);

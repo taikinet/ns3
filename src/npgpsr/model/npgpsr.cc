@@ -697,6 +697,7 @@ namespace ns3
 
                         HelloHeader hdr;
                         packet->RemoveHeader(hdr);
+                        uint32_t ipAdress = hdr.GetIp();
                         Vector Position;
                         Position.x = hdr.GetOriginPosx();
                         Position.y = hdr.GetOriginPosy();
@@ -705,8 +706,8 @@ namespace ns3
                         Ipv4Address receiver = m_socketAddresses[socket].GetLocal();
                         NS_LOG_DEBUG("update position" << Position.x << Position.y);
 
-                        // ECキー生成
-                        std::string protocolName = "NPGPSR";
+                        // ECキー取得
+                        // std::string protocolName = "NPGPSR";
                         std::string traceFile = Gettracefile();
                         EC_KEY *ecKey = GetDsaParameterIP();
                         EC_KEY *ecKeypos = GetDsaParameterPOS();
@@ -720,7 +721,13 @@ namespace ns3
                         auto startIp = std::chrono::high_resolution_clock::now();
                         // ハッシュ値(IP)
                         unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
-                        SHA256(reinterpret_cast<const unsigned char *>(protocolName.c_str()), protocolName.length(), digest);
+                        std::string ipStr = std::to_string((ipAdress >> 24) & 0xFF) + "." +
+                                std::to_string((ipAdress >> 16) & 0xFF) + "." +
+                                std::to_string((ipAdress >> 8) & 0xFF) + "." +
+                                std::to_string(ipAdress & 0xFF);
+
+                        // std::cout<<"IPadress : "<<ipStr<<std::endl;
+                        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
                         // 署名検証
                         if (ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, hdr.GetSignature(), ecKey) == 1) // 署名検証　成功時１
@@ -862,15 +869,7 @@ namespace ns3
                         NS_LOG_FUNCTION(this << addr);
                         for (std::map<Ptr<Socket>, Ipv4InterfaceAddress>::const_iterator j =
                                  m_socketAddresses.begin();
-                             j != m_socketAddresses.end(); ++j)
-                        {
-                                Ptr<Socket> socket = j->first;
-                                Ipv4InterfaceAddress iface = j->second;
-                                if (iface == addr)
-                                {
-                                        return socket;
-                                }
-                        }
+                             j != m_socketAddresses.end(); ++j);
                         Ptr<Socket> socket;
                         return socket;
                 }
@@ -999,28 +998,15 @@ namespace ns3
                         EC_KEY *ecKey_ip = GetDsaParameterIP(); // シナリオファイルで生成した鍵を取得
                         EC_KEY *ecKey_pos = GetDsaParameterPOS();
 
-                        // uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();//ノードID
-                        // Ptr<Node> nodeId = m_ipv4->GetObject<Node>();
-                        // uint32_t address = m_ipv4->GetInterfaceForAddress(m_lo);
-                        // uint32_t address = m_ipv4->GetNInterfaces();
-                        // uint32_t m_interface = m_ipv4->GetNInterfaces();
-                        // uint32_t m_addressIndex = m_ipv4->GetNAddresses (m_interface);
-                        // Ipv4InterfaceAddress node_address = m_ipv4->GetAddress (m_interface, m_addressIndex);
-                        // Ipv4Address node_ip = node_address.GetLocal();
-                        // std::cout << "Node Address: " << node_ip << std::endl;
-                        uint32_t m_interface = m_ipv4->GetNInterfaces();
-                        if (m_interface == 0) {
-                        std::cerr << "Error: No interfaces found!" << std::endl;
-                        } else {
-                        uint32_t m_addressIndex = m_ipv4->GetNAddresses(m_interface);
-                        if (m_addressIndex == 0) {
-                                std::cerr << "Error: No addresses found on interface " << m_interface << "!" << std::endl;
-                        } else {
-                                Ipv4InterfaceAddress node_address = m_ipv4->GetAddress(m_interface, m_addressIndex - 1);
-                                Ipv4Address node_ip = node_address.GetLocal();
-                                std::cout << "Node Address: " << node_ip << std::endl;
-                        }
-                        }
+                        // uint64_t nodeId = m_ipv4->GetObject<Node> ()->GetId ();/
+
+                        Ipv4Address Address = m_ipv4->GetAddress(1, 0).GetLocal();
+                        uint32_t ip = Address.Get();
+
+                        std::string ipStr = std::to_string((ip >> 24) & 0xFF) + "." +
+                                std::to_string((ip >> 16) & 0xFF) + "." +
+                                std::to_string((ip >> 8) & 0xFF) + "." +
+                                std::to_string(ip & 0xFF);
 
                         // nagano // -----------------------------------------------------------署名作成↓
                         // ECDSA
@@ -1028,9 +1014,13 @@ namespace ns3
                         // auto startIp = std::chrono::high_resolution_clock::now();
 
                         // 署名生成（IP)
-                        std::string protocolName = "NPGPSR";
+                        // std::string protocolName = "NPGPSR";
+                        // unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
+                        // SHA256(reinterpret_cast<const unsigned char *>(protocolName.c_str()), protocolName.length(), digest);
+
+                        // 署名生成 (IP) taiki version 
                         unsigned char digest[SHA256_DIGEST_LENGTH]; // ハッシュ値計算
-                        SHA256(reinterpret_cast<const unsigned char *>(protocolName.c_str()), protocolName.length(), digest);
+                        SHA256(reinterpret_cast<const unsigned char *>(ipStr.c_str()), ipStr.length(), digest);
 
                         // 時間計測開始　計算時間の速さが知りたい
                         auto startIp = std::chrono::high_resolution_clock::now();
@@ -1155,7 +1145,7 @@ namespace ns3
                                         socket->SendTo (packet, 0, InetSocketAddress (destination, NPGPSR_PORT));
                                 }
                                 else{*/
-                                HelloHeader helloHeader(((uint64_t)positionX), ((uint64_t)positionY), signature, possignature);
+                                HelloHeader helloHeader(ip, ((uint64_t)positionX), ((uint64_t)positionY), signature, possignature);
 
                                 Ptr<Packet> packet = Create<Packet>();
                                 packet->AddHeader(helloHeader);

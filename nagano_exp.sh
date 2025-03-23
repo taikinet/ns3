@@ -45,16 +45,16 @@ send_line_notification5() {
 start_time=`date +%s` 
 
 i=1 #loop
-r=250 #実験回数   # ここいじる
+r=5 #実験回数   # ここいじる
 nodeCount=0
 simlationTime=0
 send_line_notification1
-for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+for traceFile in mobility112.tcl # mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
 do
 	if [ $traceFile == "mobility112.tcl" ]; then
         fileName="mobility112.tcl"
 		nodeCount=74  
-		simulationTime=100 ### ここいじる
+		simulationTime=300 ### ここいじる
 	elif [ $traceFile == "mobility37_185.tcl" ]; then
         fileName="mobility185.tcl"
 		nodeCount=37
@@ -76,7 +76,7 @@ do
 		nodeCount=185
 		simulationTime=100
 	fi
-	for protocol in GPSR NGPSR NPGPSR NDGPSR
+	for protocol in GPSR NPGPSR NDGPSR
 	do
 		mkdir -p ~/"Simulation/$traceFile/$protocol"
 		mkdir -p ~/"dataTemp"
@@ -232,111 +232,111 @@ do
 done
 
 # simTime=300 ------------------------------------------------------------------------------------------↓
-git stash
-TARGET_BRANCH="recent"
-git checkout $TARGET_BRANCH
-git pull origin recent
-g++ -std=c++11 -o naganomaketable2 naganomaketable2.cc
-branch=$(git rev-parse --abbrev-ref HEAD)
+# git stash
+# TARGET_BRANCH="recent"
+# git checkout $TARGET_BRANCH
+# git pull origin recent
+# g++ -std=c++11 -o naganomaketable2 naganomaketable2.cc
+# branch=$(git rev-parse --abbrev-ref HEAD)
 
-rm -rf ~/dataTemp
-rm -rf ~/Simulation300/* #dataファイルの下を削除する
+# rm -rf ~/dataTemp
+# rm -rf ~/Simulation300/* #dataファイルの下を削除する
 
-send_line_notification6() {
-    traceFile=$1
-    file_path="/home/hry-user/Simulation300/$traceFile/avarage.txt"
-    if [ -f "$file_path" ]; then
-        message=$(<"$file_path")
-    fi
-    curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
-}
+# send_line_notification6() {
+#     traceFile=$1
+#     file_path="/home/hry-user/Simulation300/$traceFile/avarage.txt"
+#     if [ -f "$file_path" ]; then
+#         message=$(<"$file_path")
+#     fi
+#     curl -X POST -H "Authorization: Bearer $TOKEN" -F "message=$message" $LINE_NOTIFY_API
+# }
 
 
-start_time=`date +%s`
+# start_time=`date +%s`
 
-i=1 #loop
-r=250 #実験回数   # ここいじる
-nodeCount=0
-simlationTime=0
-send_line_notification1
-send_line_notification9 $branch
-for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
-do
-	if [ $traceFile == "mobility112.tcl" ]; then
-        fileName="mobility112.tcl"
-		nodeCount=74  
-		simulationTime=300 ### ここいじる
-	elif [ $traceFile == "mobility37_185.tcl" ]; then
-        fileName="mobility185.tcl"
-		nodeCount=37
-		simulationTime=300
-    elif [ $traceFile == "mobility74_185.tcl" ]; then
-        fileName="mobility185.tcl"
-		nodeCount=74
-		simulationTime=300
-    elif [ $traceFile == "mobility112_185.tcl" ]; then
-        fileName="mobility185.tcl"
-		nodeCount=112
-		simulationTime=300
-    elif [ $traceFile == "mobility150_185.tcl" ]; then
-        fileName="mobility185.tcl"
-		nodeCount=150
-		simulationTime=300
-    elif [ $traceFile == "mobility185.tcl" ]; then
-        fileName="mobility185.tcl"
-		nodeCount=185
-		simulationTime=300
-	fi
-	for protocol in GPSR NGPSR NPGPSR NDGPSR
-	do
-		mkdir -p ~/"Simulation300/$traceFile/$protocol"
-		mkdir -p ~/"dataTemp"
-		while [ $i -le $r ]; do
+# i=1 #loop
+# r=250 #実験回数   # ここいじる
+# nodeCount=0
+# simlationTime=0
+# send_line_notification1
+# send_line_notification9 $branch
+# for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl   # mobility37.tcl mobility112.tcl mobility185.tcl  ### ここいじる
+# do
+# 	if [ $traceFile == "mobility112.tcl" ]; then
+#         fileName="mobility112.tcl"
+# 		nodeCount=74  
+# 		simulationTime=300 ### ここいじる
+# 	elif [ $traceFile == "mobility37_185.tcl" ]; then
+#         fileName="mobility185.tcl"
+# 		nodeCount=37
+# 		simulationTime=300
+#     elif [ $traceFile == "mobility74_185.tcl" ]; then
+#         fileName="mobility185.tcl"
+# 		nodeCount=74
+# 		simulationTime=300
+#     elif [ $traceFile == "mobility112_185.tcl" ]; then
+#         fileName="mobility185.tcl"
+# 		nodeCount=112
+# 		simulationTime=300
+#     elif [ $traceFile == "mobility150_185.tcl" ]; then
+#         fileName="mobility185.tcl"
+# 		nodeCount=150
+# 		simulationTime=300
+#     elif [ $traceFile == "mobility185.tcl" ]; then
+#         fileName="mobility185.tcl"
+# 		nodeCount=185
+# 		simulationTime=300
+# 	fi
+# 	for protocol in GPSR NGPSR NPGPSR NDGPSR
+# 	do
+# 		mkdir -p ~/"Simulation300/$traceFile/$protocol"
+# 		mkdir -p ~/"dataTemp"
+# 		while [ $i -le $r ]; do
 		
-		echo "-run $i  --RoutingProtocol=$protocol "
-		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=/home/hry-user/ns-allinone-3.26/ns-3.26/node/$fileName --nodeCount=$nodeCount --simTime=$simulationTime" 
+# 		echo "-run $i  --RoutingProtocol=$protocol "
+# 		./waf --run "nagano-sim-alt --protocolName=$protocol --traceFile=/home/hry-user/ns-allinone-3.26/ns-3.26/node/$fileName --nodeCount=$nodeCount --simTime=$simulationTime" 
 		
-		mv ~/dataTemp/data.txt ~/dataTemp/data$i.txt
-		mv ~/dataTemp/data$i.txt ~/Simulation300/$traceFile/$protocol
+# 		mv ~/dataTemp/data.txt ~/dataTemp/data$i.txt
+# 		mv ~/dataTemp/data$i.txt ~/Simulation300/$traceFile/$protocol
 
-		# ラインに送信	
-		send_line_notification2 "$protocol"
+# 		# ラインに送信	
+# 		send_line_notification2 "$protocol"
 
-		i=$((i + 1))
+# 		i=$((i + 1))
 		
-		done
+# 		done
 
-		send_line_notification7 "$traceFile" $nodeCount $simulationTime $protocol
+# 		send_line_notification7 "$traceFile" $nodeCount $simulationTime $protocol
 		
-		i=1
-		rm -rf ~/dataTemp
+# 		i=1
+# 		rm -rf ~/dataTemp
 
-	done
+# 	done
 		
-	send_line_notification3 "$traceFile" $nodeCount $simulationTime
+# 	send_line_notification3 "$traceFile" $nodeCount $simulationTime
 
-done
+# done
 
-./naganomaketable2 $r
+# ./naganomaketable2 $r
 
-end_time=`date +%s` #unix時刻から現在の時刻までの秒数を取得
+# end_time=`date +%s` #unix時刻から現在の時刻までの秒数を取得
 
-SS=`expr ${end_time} - ${start_time}` #シュミレーションにかかった時間を計算する　秒数
-HH=`expr ${SS} / 3600` #時を計算
-SS=`expr ${SS} % 3600`
-MM=`expr ${SS} / 60` #分を計算
-SS=`expr ${SS} % 60` #秒を計算
+# SS=`expr ${end_time} - ${start_time}` #シュミレーションにかかった時間を計算する　秒数
+# HH=`expr ${SS} / 3600` #時を計算
+# SS=`expr ${SS} % 3600`
+# MM=`expr ${SS} / 60` #分を計算
+# SS=`expr ${SS} % 60` #秒を計算
 
-echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーションにかかった時間を　時:分:秒で表示する
+# echo "シュミレーション時間${HH}:${MM}:${SS}" #シミュレーションにかかった時間を　時:分:秒で表示する
 
 
-# LINE通知を送信
-send_line_notification4 $HH $MM $SS
+# # LINE通知を送信
+# send_line_notification4 $HH $MM $SS
 
-for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl # ここいじる
-do
-    send_line_notification6 $traceFile
-done
+# for traceFile in mobility112.tcl mobility37_185.tcl mobility74_185.tcl mobility112_185.tcl mobility150_185.tcl mobility185.tcl # ここいじる
+# do
+#     send_line_notification6 $traceFile
+# done
 
 
 # シミュレーション結果がまとまったファイルをgitのリポジトリにpushするようにすると神になれる 
